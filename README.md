@@ -1,2 +1,2 @@
-# imex
+# iMex
 company website
