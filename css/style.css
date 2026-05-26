@@ -1,0 +1,124 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+body {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 400; /* Regular weight */
+}
+.l-info{
+    text-align: center;
+    border: 1px solid black;
+    border-radius: 0px;
+    padding: 10px 5px 0px 5px;
+    background-color: black;
+    height: 75px;
+}
+.l-info:hover{
+}
+.l-info h5{
+    font-size: 15px;
+    letter-spacing: 2.5px;
+    color: #f7f7f7;
+}
+.l-info h5:hover{
+    font-size: 15px;
+    letter-spacing: 2.5px;
+    color: #ff0000;
+}
+.l-info p{
+    font-size: 15px;
+    letter-spacing: 2px;
+    color: #f7f7f7;
+}
+.l-info p:hover{
+    font-size: 15px;
+    letter-spacing: 2px;
+    color: #3d54ff;
+}
+.about{
+    border-bottom: 2px solid #3d54ff; 
+    padding: 125px 0px;
+    background-color: #f7f7f7;
+}
+.about h1, h3, p{
+    text-align: center;
+}
+.about h1{
+    letter-spacing: 12px;
+    color: #ff0000;
+}
+.about h3{
+    color: #ff0000;
+    letter-spacing: 5px;
+}
+.about p{
+    color: #3d54ff;
+    margin-bottom: 25px;
+}
+.crl1, .crl3{
+    background: black;
+    border-radius: 5px;
+}
+.crl2{
+    background-color: #f7f7f7;
+    color: #3d54ff;
+}
+.crl2:hover{
+    background-color: #f7f7f7;
+    color: #3d54ff;
+}
+.about_grid{
+    text-align: center;
+    padding: 30px;
+    transition: 0.5s all;
+    -webkit-transition: 0.5s all;
+    -moz-transition: 0.5s all;
+}
+.about_grid h4{
+    color: white;
+}
+.about_grid p{
+    padding: 0px;
+    color: #f7f7f7;
+    margin-bottom: 25px;
+}
+.about_grid i{
+    font-size: 50px;
+    color: #f7f7f7;
+    margin-bottom: 10px;
+}
+.about_grid i:hover{
+    color: #ff0000;
+}
+.about_grid:hover{
+    box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+    -webkit-box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+}
+.about_grid2{
+    text-align: center;
+    padding: 30px;
+    transition: 0.5s all;
+    -webkit-transition: 0.5s all;
+    -moz-transition: 0.5s all;
+}
+.about_grid2 h4{
+    color: black;
+}
+.about_grid2 p{
+    padding: 0px;
+    color: black;
+    margin-bottom: 25px;
+}
+.about_grid2 i{
+    font-size: 50px;
+    color: #ff0000;
+    margin-bottom: 10px;
+}
+.about_grid2 i:hover{
+    color: #3d54ff;
+}
+.about_grid2:hover{
+    box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+    -webkit-box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 2px 15px 70px 2px rgba(0, 0, 0, 0.75);
+}
