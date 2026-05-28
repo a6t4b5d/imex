@@ -1,0 +1,43 @@
+
+/* GREATER IMPACT SPECIFIC */
+.landing-page{
+    height: 100vh;
+    background: url(../img/giimg/gicover.png);
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.banner-center{
+    height: 100vh;
+    color: whitesmoke;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #000;
+    opacity: 0.75;
+}
+.banner-center h1{
+    text-transform: uppercase;
+    font-size: 300%;
+}
+.banner-center h3{
+    font-size: 150%;
+    font-weight: 500;
+    text-shadow: 1px 1px 10px #000;
+}
+.banner-underline{
+    width: 25%;
+    border: 1px solid #f7f7f7;
+    margin: 0px auto 20px auto;
+}
+.banner-center a{
+    font-size: 30px;
+    width: 300px;
+    margin: 0px auto;
+    display: inline-block;
+    border: 1px solid whitesmoke;
+    color: whitesmoke;
+    text-decoration: none;
+    border-radius: 20px;
+}
