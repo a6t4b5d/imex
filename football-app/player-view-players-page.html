@@ -19,7 +19,7 @@
     <link href="css/responsive.css" rel="stylesheet">
     
   </head>
-  <body style="background-color: #27282a">
+  <body>
     
     <!--// Main Wrapper \\-->
     <div class="sportsmagazine-main-wrapper">
@@ -47,9 +47,9 @@
                                       <ul class="nav navbar-nav">
                                         <li><a href="index.html">HOME</a>
                                         </li>
-                                        <li><a href="player-view-players-page.html">PLAYERS</a>
+                                        <li class="active"><a href="player-view-players-page.html">PLAYERS</a>
                                         </li>
-                                        <li class="active"><a href="player-view-profile-page.html">PROFILE</a>
+                                        <li><a href="player-view-profile-page.html">PROFILE</a>
                                         </li>
                                       </ul>
                                     </div>
@@ -65,31 +65,91 @@
         </header>
         <!--// Header \\-->
 
-		<!--// Main Content \\-->
-		<div class="">
-        <!-- <div class="sportsmagazine-main-content"> -->
+        <!--// Main Content \\-->
+        <div class="sportsmagazine-main-content">
 
-			<!--// Main Section \\-->
-			<div class="sportsmagazine-main-section sportsmagazine-account-full">
-
+            <!--// Main Section \\-->
+            <div class="sportsmagazine-main-section sportsmagazine-player-gridfull">
                 <div class="container">
-                    <form>
-                        <div class="col-md-4">
-                            <img src="images/pb/simdave.jpg" class="img-responsive img-circle" width="100%" height="100%"/>
-                            <h3 class="well" style="text-align: center;"><b>Simeon David</b></h3>
+                    <div class="row">
+                        
+                        <div class="col-md-12">
+                            <div class="sportsmagazine-player sportsmagazine-player-grid">
+                                <ul class="row">
+                                    <li class="col-md-4">
+                                        <figure><a href="player-view-debruyne-profile.html" title="View Profile"><img src="images/pb/debruyne.jpg" alt=""><i class="fa fa-eye"></i></a><span></span></figure>
+                                        <ul class="sportsmagazine-player-grid-social sportsmagazine-blog-grid-options">
+                                            <a href="player-view-debruyne-profile.html" class="sportsmagazine-blog-grid-thumb"> <b>KEVIN DE BRUYNE</b></a>
+                                            <ul>
+                                                <li><a href=""><i class="fa fa-thumbs-o-up"></i>3.2k</a></li>
+                                                <li><a href=""><i class="fa fa-share-alt"></i></a></li>
+                                            </ul>
+                                        </ul>
+                                    </li>
+                                    <li class="col-md-4">
+                                        <figure><a href="player-view-achrafhakimi-profile.html" title="View Profile"><img src="images/pb/hakimi.jpg" alt=""><i class="fa fa-eye"></i></a><span></span></figure>
+                                        <ul class="sportsmagazine-player-grid-social sportsmagazine-blog-grid-options">
+                                            <a href="player-view-achrafhakimi-profile.html" class="sportsmagazine-blog-grid-thumb"> <b>ACHRAF HAKIMI</b></a>
+                                            <ul>
+                                                <li><a href=""><i class="fa fa-thumbs-o-up"></i>2.5k</a></li>
+                                                <li><a href=""><i class="fa fa-share-alt"></i></a></li>
+                                            </ul>
+                                        </ul>
+                                    </li>
+                                    <li class="col-md-4">
+                                        <figure><a href="player-view-maitlandniles-profile.html" title="View Profile"><img src="images/pb/niles.png" alt=""><i class="fa fa-eye"></i></a><span></span></figure>
+                                        <ul class="sportsmagazine-player-grid-social sportsmagazine-blog-grid-options">
+                                            <a href="player-view-maitlandniles-profile.html" class="sportsmagazine-blog-grid-thumb"> <b>AINSLEY MAITLAND-NILES</b></a>
+                                            <ul>
+                                                <li><a href=""><i class="fa fa-thumbs-o-up"></i>1.2k</a></li>
+                                                <li><a href=""><i class="fa fa-share-alt"></i></a></li>
+                                            </ul>
+                                        </ul>
+                                    </li>
+                                    <li class="col-md-4">
+                                        <figure><a href="player-view-ricolewis-profile.html" title="View Profile"><img src="images/pb/ricolewis.jpg" alt=""><i class="fa fa-eye"></i></a><span></span></figure>
+                                        <ul class="sportsmagazine-player-grid-social sportsmagazine-blog-grid-options">
+                                            <a href="player-view-ricolewis-profile.html" class="sportsmagazine-blog-grid-thumb"> <b>RICO LEWIS</b></a>
+                                            <ul>
+                                                <li><a href=""><i class="fa fa-thumbs-o-up"></i>2.1k</a></li>
+                                                <li><a href=""><i class="fa fa-share-alt"></i></a></li>
+                                            </ul>
+                                        </ul>
+                                    </li>
+                                    <li class="col-md-4">
+                                        <figure><a href="player-view-alexiwobi-profile.html" title="View Profile"><img src="images/pb/iwobi.png" alt=""><i class="fa fa-eye"></i></a><span></span></figure>
+                                        <ul class="sportsmagazine-player-grid-social sportsmagazine-blog-grid-options">
+                                            <a href="player-view-alexiwobi-profile.html" class="sportsmagazine-blog-grid-thumb"> <b>ALEX IWOBI</b></a>
+                                            <ul>
+                                                <li><a href=""><i class="fa fa-thumbs-o-up"></i>1.5k</a></li>
+                                                <li><a href=""><i class="fa fa-share-alt"></i></a></li>
+                                            </ul>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!--// Pagination \\-->
+                            <div class="sportsmagazine-pagination">
+                              <ul class="page-numbers">
+                                 <li><a class="previous page-numbers" href="404.html"><span aria-label="Next"><i class="fa fa-angle-left"></i></span></a></li>
+                                 <li><span class="page-numbers current">1</span></li>
+                                 <li><a class="page-numbers" href="#">2</a></li>
+                                 <li><a class="page-numbers" href="#">3</a></li>
+                                 <li><a class="page-numbers" href="#">4</a></li>
+                                 <li><a class="next page-numbers" href="#"><span aria-label="Next"><i class="fa fa-angle-right"></i></span></a></li>
+                              </ul>
+                            </div>
+                            <!--// Pagination \\-->
                         </div>
-                        <div class="col-md-8">
-                          <video width="100%" height="100%" controls="">
-                            <source src="videos/Debruyne2.mp4" type=""/>
-                          </video>
-                        </div>
-                    </form>
-                </div>
-			</div>
-			<!--// Main Section \\-->
 
-		</div>
-		<!--// Main Content \\-->
+
+                    </div>
+                </div>
+            </div>
+            <!--// Main Section \\-->
+
+        </div>
+        <!--// Main Content \\-->
 
         <!--// Footer \\-->
         <footer id="sportsmagazine-footer" class="sportsmagazine-footer-one">
@@ -112,12 +172,13 @@
 
         </footer>
         <!--// Footer \\-->
-
+    
     </div>
     <!--// Main Wrapper \\-->
 
-	<!-- jQuery (necessary for JavaScript plugins) -->
-	<script type="text/javascript" src="script/jquery.js"></script>
+
+    <!-- jQuery (necessary for JavaScript plugins) -->
+    <script type="text/javascript" src="script/jquery.js"></script>
     <script type="text/javascript" src="script/bootstrap.min.js"></script>
     <script type="text/javascript" src="script/slick.slider.min.js"></script>
     <script type="text/javascript" src="script/jquery.countdown.min.js"></script>
