@@ -1,0 +1,3234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Connect</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f7f5;
+        color: #222;
+    }
+
+    header {
+        background: #0b6623;
+        color: white;
+        padding: 15px 5%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    nav button {
+        background: transparent;
+        color: white;
+        border: none;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-size: 15px;
+        border-radius: 5px;
+    }
+
+    nav button:hover {
+        background: rgba(255,255,255,0.15);
+    }
+
+    .auth-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .auth-area button {
+        background: white;
+        color: #0b6623;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-profile-pic {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: contain;
+        background: #e9eee9;
+        border: 2px solid white;
+    }
+
+    .role-badge {
+        background: #ffd700;
+        color: #222;
+        padding: 4px 7px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    main {
+        width: 90%;
+        max-width: 1200px;
+        margin: 30px auto;
+    }
+
+    .page {
+        display: none;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    .hero {
+        background: linear-gradient(135deg, #0b6623, #149447);
+        color: white;
+        padding: 60px 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .hero h2 {
+        font-size: 38px;
+        margin-bottom: 15px;
+    }
+
+    .hero p {
+        font-size: 18px;
+        max-width: 700px;
+        margin: auto;
+        line-height: 1.6;
+    }
+
+    .section-title {
+        margin-bottom: 20px;
+        color: #0b6623;
+    }
+
+    .form-container {
+        max-width: 600px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .form-container h2 {
+        margin-bottom: 20px;
+        color: #0b6623;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .primary-btn {
+        background: #0b6623;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .primary-btn:hover {
+        background: #084d1b;
+    }
+
+    .secondary-btn {
+        background: #eee;
+        color: #333;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .picture-preview {
+        width: 130px;
+        height: 130px;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        background: #f2f2f2;
+        margin: 10px auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .picture-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #f2f2f2;
+    }
+
+    .players-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 22px;
+    }
+
+    .player-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        transition: transform 0.2s;
+    }
+
+    .player-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .player-image {
+        width: 100%;
+        height: 260px;
+        background: #e9eee9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .player-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #e9eee9;
+    }
+
+    .player-info {
+        padding: 18px;
+    }
+
+    .player-info h3 {
+        color: #0b6623;
+        margin-bottom: 10px;
+        font-size: 20px;
+    }
+
+    .player-info p {
+        margin-bottom: 6px;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .contact-btn {
+        margin-top: 12px;
+        width: 100%;
+        background: #149447;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .search-box {
+        background: white;
+        padding: 18px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    .community-post {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+
+    .post-author {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .post-author img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: contain;
+        background: #eee;
+    }
+
+    .post-author strong {
+        color: #0b6623;
+    }
+
+    .post-content {
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .like-btn {
+        border: none;
+        background: #f1f1f1;
+        padding: 7px 12px;
+        border-radius: 15px;
+        cursor: pointer;
+    }
+
+    .tip-card {
+        background: white;
+        padding: 22px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+
+    .tip-card h3 {
+        color: #0b6623;
+        margin-bottom: 10px;
+    }
+
+    .tip-card p {
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .tip-author {
+        font-size: 13px;
+        color: #777;
+    }
+
+    .edit-profile-card {
+        max-width: 650px;
+    }
+
+    .profile-edit-image {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #0b6623;
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-edit-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #eee;
+    }
+
+    .empty-message {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        color: #777;
+    }
+
+    footer {
+        background: #0b6623;
+        color: white;
+        text-align: center;
+        padding: 25px;
+        margin-top: 50px;
+    }
+
+    @media (max-width: 700px) {
+        header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        nav {
+            width: 100%;
+        }
+
+        .hero h2 {
+            font-size: 28px;
+        }
+
+        .player-image {
+            height: 230px;
+        }
+
+        .auth-area {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <h1>⚽ Football Connect</h1>
+
+    <nav>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('players')">Players</button>
+        <button id="communityNav" onclick="showPage('feed')">
+            Community
+        </button>
+        <button onclick="showPage('tips')">Tips</button>
+    </nav>
+
+    <div class="auth-area" id="authArea"></div>
+
+</header>
+
+
+<main>
+
+    <!-- HOME -->
+    <section id="home" class="page active">
+
+        <div class="hero">
+
+            <h2>Welcome to Football Connect</h2>
+
+            <p>
+                Connect football players with scouts and coaches.
+                Discover talented players, share football knowledge,
+                and build your football network.
+            </p>
+
+        </div>
+
+        <div style="text-align:center;">
+
+            <button
+                class="primary-btn"
+                onclick="showPage('players')"
+            >
+                Discover Players
+            </button>
+
+            <button
+                class="primary-btn"
+                onclick="showPage('signup')"
+                style="margin-left:10px;"
+            >
+                Join Football Connect
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- SIGNUP -->
+    <section id="signup" class="page">
+
+        <div class="form-container">
+
+            <h2>Create Your Account</h2>
+
+            <form onsubmit="signup(event)">
+
+                <div class="form-group">
+
+                    <label>Full Name</label>
+
+                    <input
+                        type="text"
+                        id="signupName"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Email</label>
+
+                    <input
+                        type="email"
+                        id="signupEmail"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Password</label>
+
+                    <input
+                        type="password"
+                        id="signupPassword"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Account Type</label>
+
+                    <select
+                        id="signupRole"
+                        onchange="handleSignupRoleChange()"
+                        required
+                    >
+
+                        <option value="">
+                            Select account type
+                        </option>
+
+                        <option value="player">
+                            Player
+                        </option>
+
+                        <option value="scout">
+                            Scout / Coach
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- PLAYER FIELDS -->
+
+                <div
+                    id="playerSignupFields"
+                    class="hidden"
+                >
+
+                    <div class="form-group">
+
+                        <label>Position</label>
+
+                        <select id="signupPosition">
+
+                            <option value="">
+                                Select position
+                            </option>
+
+                            <option>Goalkeeper</option>
+                            <option>Centre Back</option>
+                            <option>Left Back</option>
+                            <option>Right Back</option>
+                            <option>Defensive Midfielder</option>
+                            <option>Central Midfielder</option>
+                            <option>Attacking Midfielder</option>
+                            <option>Left Winger</option>
+                            <option>Right Winger</option>
+                            <option>Striker</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Age</label>
+
+                        <input
+                            type="number"
+                            id="signupAge"
+                            min="13"
+                            max="60"
+                            placeholder="Enter your age"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Country</label>
+
+                        <input
+                            type="text"
+                            id="signupCountry"
+                            placeholder="e.g. Nigeria"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Profile Picture</label>
+
+                        <input
+                            type="file"
+                            id="signupPicture"
+                            accept="image/*"
+                            onchange="previewSignupPicture(event)"
+                        >
+
+                    </div>
+
+
+                    <div class="picture-preview">
+
+                        <img
+                            id="signupPicturePreview"
+                            src=""
+                            alt="Profile preview"
+                            class="hidden"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Create Account
+                </button>
+
+            </form>
+
+
+            <p style="margin-top:20px;">
+
+                Already have an account?
+
+                <button
+                    class="secondary-btn"
+                    onclick="showPage('login')"
+                >
+                    Login
+                </button>
+
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- LOGIN -->
+    <section id="login" class="page">
+
+        <div class="form-container">
+
+            <h2>Login</h2>
+
+            <form onsubmit="login(event)">
+
+                <div class="form-group">
+
+                    <label>Email</label>
+
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Password</label>
+
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Login
+                </button>
+
+            </form>
+
+
+            <p style="margin-top:20px;">
+
+                Don't have an account?
+
+                <button
+                    class="secondary-btn"
+                    onclick="showPage('signup')"
+                >
+                    Sign Up
+                </button>
+
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- PLAYERS -->
+    <section id="players" class="page">
+
+        <h2 class="section-title">
+            Discover Football Players
+        </h2>
+
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="playerSearch"
+                placeholder="Search by player name, position or country..."
+                oninput="searchPlayers()"
+            >
+
+        </div>
+
+
+        <div
+            id="playersGrid"
+            class="players-grid"
+        ></div>
+
+    </section>
+
+
+    <!-- COMMUNITY -->
+    <section id="feed" class="page">
+
+        <h2 class="section-title">
+            Football Community
+        </h2>
+
+        <div id="communityCreateArea"></div>
+
+        <div id="postsContainer"></div>
+
+    </section>
+
+
+    <!-- TIPS -->
+    <section id="tips" class="page">
+
+        <h2 class="section-title">
+            Football Tips & Advice
+        </h2>
+
+        <div id="tipCreateArea"></div>
+
+        <div id="tipsContainer"></div>
+
+    </section>
+
+
+    <!-- EDIT PROFILE -->
+    <section id="editProfile" class="page">
+
+        <div class="form-container edit-profile-card">
+
+            <h2>Edit Profile</h2>
+
+
+            <div class="profile-edit-image">
+
+                <img
+                    id="editProfilePicturePreview"
+                    src=""
+                    alt="Profile picture"
+                >
+
+            </div>
+
+
+            <form onsubmit="saveProfile(event)">
+
+                <div class="form-group">
+
+                    <label>Profile Picture</label>
+
+                    <input
+                        type="file"
+                        id="editProfilePicture"
+                        accept="image/*"
+                        onchange="previewEditPicture(event)"
+                    >
+
+                    <small>
+                        Upload a new picture to replace your current one.
+                    </small>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Full Name</label>
+
+                    <input
+                        type="text"
+                        id="editName"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Email</label>
+
+                    <input
+                        type="email"
+                        id="editEmail"
+                        required
+                    >
+
+                </div>
+
+
+                <div id="editPlayerFields">
+
+                    <div class="form-group">
+
+                        <label>Position</label>
+
+                        <select id="editPosition">
+
+                            <option value="">
+                                Select position
+                            </option>
+
+                            <option>Goalkeeper</option>
+                            <option>Centre Back</option>
+                            <option>Left Back</option>
+                            <option>Right Back</option>
+                            <option>Defensive Midfielder</option>
+                            <option>Central Midfielder</option>
+                            <option>Attacking Midfielder</option>
+                            <option>Left Winger</option>
+                            <option>Right Winger</option>
+                            <option>Striker</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Age</label>
+
+                        <input
+                            type="number"
+                            id="editAge"
+                            min="13"
+                            max="60"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Country</label>
+
+                        <input
+                            type="text"
+                            id="editCountry"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>New Password</label>
+
+                    <input
+                        type="password"
+                        id="editPassword"
+                        placeholder="Leave blank to keep current password"
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Save Changes
+                </button>
+
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    onclick="showPage('home')"
+                    style="margin-left:8px;"
+                >
+                    Cancel
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        © 2026 Football Connect. All rights reserved.
+    </p>
+
+</footer>
+
+
+<script>
+
+/* =========================================================
+   DEFAULT PROFILE PICTURE
+========================================================= */
+
+const defaultProfilePicture =
+    "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=500&q=80";
+
+
+/* =========================================================
+   SAMPLE PLAYERS
+========================================================= */
+
+/*
+ * No sample players are included.
+ * Players appear only after a real player signs up.
+ */
+
+
+/* =========================================================
+   SECURITY HELPERS
+========================================================= */
+
+function escapeHTML(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function escapeAttribute(value) {
+
+    return escapeHTML(value);
+
+}
+
+
+/* =========================================================
+   STORAGE
+========================================================= */
+
+function getUsers() {
+
+    return JSON.parse(
+        localStorage.getItem("footballUsers") || "[]"
+    );
+
+}
+
+
+function saveUsers(users) {
+
+    localStorage.setItem(
+        "footballUsers",
+        JSON.stringify(users)
+    );
+
+}
+
+
+function getCurrentUser() {
+
+    return JSON.parse(
+        localStorage.getItem("currentFootballUser") || "null"
+    );
+
+}
+
+/* =========================================================
+   ONE-TIME PLAYER PROFILE RESET
+========================================================= */
+
+/*
+ * Clean start requested by the user.
+ *
+ * On the first launch of this version:
+ * - all existing player accounts are removed;
+ * - scout/coach accounts are kept;
+ * - old Community posts are removed;
+ * - a logged-in player session is removed.
+ *
+ * A localStorage flag prevents this reset from running
+ * again after the user creates new player accounts.
+ */
+
+function resetPlayerProfilesOnce() {
+
+    const resetKey =
+        "footballPlayerProfilesResetV1";
+
+
+    if (
+        localStorage.getItem(resetKey) === "done"
+    ) {
+        return;
+    }
+
+
+    const users =
+        getUsers();
+
+
+    if (Array.isArray(users)) {
+
+        const remainingUsers =
+            users.filter(
+                user =>
+                    user &&
+                    user.role !== "player"
+            );
+
+        saveUsers(
+            remainingUsers
+        );
+
+    }
+
+
+    /*
+     * Community posts are created by players, so remove
+     * the old posts together with the old player profiles.
+     */
+    localStorage.removeItem(
+        "footballPosts"
+    );
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    /*
+     * Keep scout/coach sessions, but remove a player session.
+     */
+    if (
+        currentUser &&
+        currentUser.role === "player"
+    ) {
+
+        localStorage.removeItem(
+            "currentFootballUser"
+        );
+
+    }
+
+
+    localStorage.setItem(
+        resetKey,
+        "done"
+    );
+
+}
+
+
+
+function saveCurrentUser(user) {
+
+    localStorage.setItem(
+        "currentFootballUser",
+        JSON.stringify(user)
+    );
+
+}
+
+
+/* =========================================================
+   PAGE NAVIGATION
+========================================================= */
+
+function showPage(pageId) {
+
+    const currentUser = getCurrentUser();
+
+
+    if (pageId === "feed") {
+
+        if (!currentUser) {
+
+            alert(
+                "Please login to access the Community."
+            );
+
+            showPage("login");
+
+            return;
+        }
+
+
+        if (currentUser.role !== "player") {
+
+            alert(
+                "The Community is available to players only."
+            );
+
+            showPage("home");
+
+            return;
+        }
+
+    }
+
+
+    if (pageId === "editProfile") {
+
+        if (!currentUser) {
+
+            alert("Please login first.");
+
+            showPage("login");
+
+            return;
+        }
+
+        loadEditProfile();
+
+    }
+
+
+    document.querySelectorAll(".page").forEach(page => {
+
+        page.classList.remove("active");
+
+    });
+
+
+    const selectedPage =
+        document.getElementById(pageId);
+
+
+    if (selectedPage) {
+
+        selectedPage.classList.add("active");
+
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+/* =========================================================
+   SIGNUP ROLE
+========================================================= */
+
+function handleSignupRoleChange() {
+
+    const role =
+        document.getElementById("signupRole").value;
+
+
+    const playerFields =
+        document.getElementById(
+            "playerSignupFields"
+        );
+
+
+    if (role === "player") {
+
+        playerFields.classList.remove("hidden");
+
+    } else {
+
+        playerFields.classList.add("hidden");
+
+    }
+
+}
+
+
+/* =========================================================
+   SIGNUP PICTURE PREVIEW
+========================================================= */
+
+function previewSignupPicture(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    const preview =
+        document.getElementById(
+            "signupPicturePreview"
+        );
+
+
+    if (!file) {
+
+        preview.src = "";
+
+        preview.classList.add("hidden");
+
+        return;
+
+    }
+
+
+    if (!file.type.startsWith("image/")) {
+
+        alert(
+            "Please select an image file."
+        );
+
+        event.target.value = "";
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload = function(e) {
+
+        preview.src =
+            e.target.result;
+
+        preview.classList.remove("hidden");
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================================
+   SIGNUP
+========================================================= */
+
+function signup(event) {
+
+    event.preventDefault();
+
+
+    const name =
+        document.getElementById(
+            "signupName"
+        ).value.trim();
+
+
+    const email =
+        document.getElementById(
+            "signupEmail"
+        ).value.trim().toLowerCase();
+
+
+    const password =
+        document.getElementById(
+            "signupPassword"
+        ).value;
+
+
+    const role =
+        document.getElementById(
+            "signupRole"
+        ).value;
+
+
+    let position = "";
+
+    let age = "";
+
+    let country = "";
+
+
+    if (!name || !email || !password || !role) {
+
+        alert(
+            "Please complete all required fields."
+        );
+
+        return;
+
+    }
+
+
+    if (role === "player") {
+
+        position =
+            document.getElementById(
+                "signupPosition"
+            ).value;
+
+
+        age =
+            document.getElementById(
+                "signupAge"
+            ).value;
+
+
+        country =
+            document.getElementById(
+                "signupCountry"
+            ).value.trim();
+
+
+        if (!position || !age || !country) {
+
+            alert(
+                "Players must enter their position, age and country."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const users =
+        getUsers();
+
+
+    const existingUser =
+        users.find(
+            user =>
+                user.email.toLowerCase() === email
+        );
+
+
+    if (existingUser) {
+
+        alert(
+            "An account with this email already exists."
+        );
+
+        return;
+
+    }
+
+
+    const pictureInput =
+        document.getElementById(
+            "signupPicture"
+        );
+
+
+    if (
+        role === "player" &&
+        pictureInput.files &&
+        pictureInput.files[0]
+    ) {
+
+        const file =
+            pictureInput.files[0];
+
+
+        if (!file.type.startsWith("image/")) {
+
+            alert(
+                "Please select a valid image."
+            );
+
+            return;
+
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload = function(e) {
+
+            finishSignup(
+                name,
+                email,
+                password,
+                role,
+                position,
+                age,
+                country,
+                e.target.result
+            );
+
+        };
+
+
+        reader.readAsDataURL(file);
+
+    } else {
+
+        finishSignup(
+            name,
+            email,
+            password,
+            role,
+            position,
+            age,
+            country,
+            defaultProfilePicture
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   FINISH SIGNUP
+========================================================= */
+
+function finishSignup(
+    name,
+    email,
+    password,
+    role,
+    position,
+    age,
+    country,
+    profilePicture
+) {
+
+    const users =
+        getUsers();
+
+
+    const newUser = {
+
+        id:
+            Date.now().toString(),
+
+        name:
+            name,
+
+        email:
+            email,
+
+        password:
+            password,
+
+        role:
+            role,
+
+        position:
+            position,
+
+        age:
+            age,
+
+        country:
+            country,
+
+        profilePicture:
+            profilePicture ||
+            defaultProfilePicture
+
+    };
+
+
+    users.push(newUser);
+
+
+    saveUsers(users);
+
+    saveCurrentUser(newUser);
+
+
+    alert(
+        "Account created successfully!"
+    );
+
+
+    updateUserInterface();
+
+    displayPlayers();
+
+    displayPosts();
+
+    displayTips();
+
+
+    showPage("home");
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function login(event) {
+
+    event.preventDefault();
+
+
+    const email =
+        document.getElementById(
+            "loginEmail"
+        ).value.trim().toLowerCase();
+
+
+    const password =
+        document.getElementById(
+            "loginPassword"
+        ).value;
+
+
+    const users =
+        getUsers();
+
+
+    const user =
+        users.find(
+            item =>
+                item.email.toLowerCase() === email &&
+                item.password === password
+        );
+
+
+    if (!user) {
+
+        alert(
+            "Invalid email or password."
+        );
+
+        return;
+
+    }
+
+
+    if (!user.profilePicture) {
+
+        user.profilePicture =
+            defaultProfilePicture;
+
+    }
+
+
+    if (user.role === "player") {
+
+        if (!user.position) {
+
+            user.position =
+                "Position not added";
+
+        }
+
+
+        if (!user.age) {
+
+            user.age = "";
+
+        }
+
+
+        if (!user.country) {
+
+            user.country =
+                "Country not added";
+
+        }
+
+    }
+
+
+    saveUsers(users);
+
+    saveCurrentUser(user);
+
+
+    alert(
+        "Login successful!"
+    );
+
+
+    updateUserInterface();
+
+    displayPlayers();
+
+    displayPosts();
+
+    displayTips();
+
+
+    showPage("home");
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+
+    localStorage.removeItem(
+        "currentFootballUser"
+    );
+
+
+    updateUserInterface();
+
+    displayPlayers();
+
+    displayPosts();
+
+    displayTips();
+
+
+    showPage("home");
+
+}
+
+
+/* =========================================================
+   UPDATE USER INTERFACE
+========================================================= */
+
+function updateUserInterface() {
+
+    const authArea =
+        document.getElementById(
+            "authArea"
+        );
+
+
+    const communityNav =
+        document.getElementById(
+            "communityNav"
+        );
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (currentUser) {
+
+        const roleText =
+            currentUser.role === "player"
+                ? "Player"
+                : "Scout / Coach";
+
+
+        authArea.innerHTML = `
+
+            <div class="user-info">
+
+                <img
+                    class="header-profile-pic"
+                    src="${escapeAttribute(
+                        currentUser.profilePicture ||
+                        defaultProfilePicture
+                    )}"
+                    alt="Profile picture"
+                >
+
+                <span>
+                    ${escapeHTML(
+                        currentUser.name
+                    )}
+                </span>
+
+                <span class="role-badge">
+                    ${roleText}
+                </span>
+
+            </div>
+
+
+            <button
+                onclick="showPage('editProfile')"
+            >
+                Edit Profile
+            </button>
+
+
+            <button onclick="logout()">
+                Logout
+            </button>
+
+        `;
+
+
+        if (currentUser.role === "player") {
+
+            communityNav.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            communityNav.classList.add(
+                "hidden"
+            );
+
+        }
+
+    } else {
+
+        authArea.innerHTML = `
+
+            <button
+                onclick="showPage('login')"
+            >
+                Login
+            </button>
+
+
+            <button
+                onclick="showPage('signup')"
+            >
+                Sign Up
+            </button>
+
+        `;
+
+
+        communityNav.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   REGISTERED PLAYERS
+========================================================= */
+
+function getRegisteredPlayers() {
+
+    const users =
+        getUsers();
+
+
+    return users
+
+        .filter(
+            user =>
+                user.role === "player"
+        )
+
+        .map(user => ({
+
+            id:
+                user.id,
+
+            email:
+                user.email,
+
+            name:
+                user.name,
+
+            position:
+                user.position ||
+                "Position not added",
+
+            age:
+                user.age ||
+                "Not added",
+
+            country:
+                user.country ||
+                "Country not added",
+
+            image:
+                user.profilePicture ||
+                defaultProfilePicture,
+
+            registeredUser:
+                true
+
+        }));
+
+}
+
+
+/* =========================================================
+   ALL PLAYERS
+========================================================= */
+
+function getAllPlayers() {
+
+    /*
+     * Only real registered player accounts are displayed.
+     * There are no built-in/sample player profiles.
+     */
+    return getRegisteredPlayers();
+
+}
+
+
+/* =========================================================
+   DISPLAY PLAYERS
+========================================================= */
+
+function displayPlayers(
+    players = getAllPlayers()
+) {
+
+    const grid =
+        document.getElementById(
+            "playersGrid"
+        );
+
+
+    if (!grid) return;
+
+
+    if (!players.length) {
+
+        grid.innerHTML = `
+
+            <div class="empty-message">
+                No players found.
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    grid.innerHTML = players.map(
+        player => `
+
+        <div class="player-card">
+
+            <div class="player-image">
+
+                <img
+                    src="${escapeAttribute(
+                        player.image ||
+                        defaultProfilePicture
+                    )}"
+                    alt="${escapeAttribute(
+                        player.name
+                    )}"
+                >
+
+            </div>
+
+
+            <div class="player-info">
+
+                <h3>
+                    ${escapeHTML(
+                        player.name
+                    )}
+                </h3>
+
+
+                <p>
+                    <strong>Position:</strong>
+                    ${escapeHTML(
+                        player.position
+                    )}
+                </p>
+
+
+                <p>
+                    <strong>Age:</strong>
+                    ${escapeHTML(
+                        player.age
+                    )}
+                </p>
+
+
+                <p>
+                    <strong>Country:</strong>
+                    ${escapeHTML(
+                        player.country
+                    )}
+                </p>
+
+
+                ${
+                    getCurrentUser() &&
+                    getCurrentUser().role === "scout"
+
+                    ?
+
+                    `<button
+                        class="contact-btn"
+                        onclick="contactPlayer('${escapeAttribute(
+                            player.name
+                        )}')"
+                    >
+                        Contact Player
+                    </button>`
+
+                    :
+
+                    ""
+                }
+
+            </div>
+
+        </div>
+
+    `
+    ).join("");
+
+}
+
+
+/* =========================================================
+   SEARCH PLAYERS
+========================================================= */
+
+function searchPlayers() {
+
+    const searchInput =
+        document.getElementById(
+            "playerSearch"
+        );
+
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+
+    const allPlayers =
+        getAllPlayers();
+
+
+    const filtered =
+        allPlayers.filter(
+            player => {
+
+                return (
+
+                    player.name
+                        .toLowerCase()
+                        .includes(search)
+
+                    ||
+
+                    String(player.position)
+                        .toLowerCase()
+                        .includes(search)
+
+                    ||
+
+                    String(player.country)
+                        .toLowerCase()
+                        .includes(search)
+
+                );
+
+            }
+        );
+
+
+    displayPlayers(filtered);
+
+}
+
+
+/* =========================================================
+   CONTACT PLAYER
+========================================================= */
+
+function contactPlayer(name) {
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (
+        !currentUser ||
+        currentUser.role !== "scout"
+    ) {
+
+        alert(
+            "Only scouts/coaches can contact players."
+        );
+
+        return;
+
+    }
+
+
+    alert(
+        "Contact " +
+        name +
+        " on: 09027759682"
+    );
+
+}
+
+
+/* =========================================================
+   COMMUNITY
+========================================================= */
+
+/*
+ * Find the real registered player who owns a community post.
+ * The registered user's profile picture is the single source
+ * of truth for the Community page.
+ *
+ * This also repairs older posts that were created before
+ * authorId / authorEmail were added.
+ */
+function getPostAuthorUser(post) {
+
+    const users = getUsers();
+
+    if (!Array.isArray(users)) return null;
+
+    const postAuthorId =
+        post && post.authorId
+            ? String(post.authorId)
+            : "";
+
+    const postAuthorEmail =
+        post && post.authorEmail
+            ? String(post.authorEmail).trim().toLowerCase()
+            : "";
+
+    const postAuthorName =
+        post && post.author
+            ? String(post.author).trim().toLowerCase()
+            : "";
+
+    return users.find(user => {
+
+        if (!user || user.role !== "player") {
+            return false;
+        }
+
+        const userId =
+            user.id !== undefined && user.id !== null
+                ? String(user.id)
+                : "";
+
+        const userEmail =
+            user.email
+                ? String(user.email).trim().toLowerCase()
+                : "";
+
+        const userName =
+            user.name
+                ? String(user.name).trim().toLowerCase()
+                : "";
+
+        /* New posts: use the permanent user ID first. */
+        if (postAuthorId && userId === postAuthorId) {
+            return true;
+        }
+
+        /* Also support posts that contain the player's email. */
+        if (postAuthorEmail && userEmail === postAuthorEmail) {
+            return true;
+        }
+
+        /* Old posts: match the original author name. */
+        if (
+            !postAuthorId &&
+            !postAuthorEmail &&
+            postAuthorName &&
+            userName === postAuthorName
+        ) {
+            return true;
+        }
+
+        return false;
+    }) || null;
+}
+
+
+/*
+ * Repair old Community posts so their stored profile picture
+ * is always synchronized with the registered player's profile.
+ *
+ * This is important because localStorage may contain posts that
+ * were created before the profile picture was changed.
+ */
+function syncCommunityPostsWithPlayers() {
+
+    const posts =
+        JSON.parse(
+            localStorage.getItem("footballPosts") || "[]"
+        );
+
+    if (!Array.isArray(posts) || !posts.length) {
+        return posts || [];
+    }
+
+    let changed = false;
+
+    const syncedPosts = posts.map(post => {
+
+        const player = getPostAuthorUser(post);
+
+        if (!player) {
+            return post;
+        }
+
+        const currentPicture =
+            player.profilePicture ||
+            defaultProfilePicture;
+
+        const updatedPost = {
+            ...post,
+            author: player.name,
+            authorId: player.id,
+            authorEmail: player.email,
+            profilePicture: currentPicture
+        };
+
+        if (
+            post.author !== updatedPost.author ||
+            post.authorId !== updatedPost.authorId ||
+            post.authorEmail !== updatedPost.authorEmail ||
+            post.profilePicture !== updatedPost.profilePicture
+        ) {
+            changed = true;
+        }
+
+        return updatedPost;
+    });
+
+    if (changed) {
+        localStorage.setItem(
+            "footballPosts",
+            JSON.stringify(syncedPosts)
+        );
+    }
+
+    return syncedPosts;
+}
+
+
+function displayPosts() {
+
+    const container =
+        document.getElementById(
+            "postsContainer"
+        );
+
+
+    const createArea =
+        document.getElementById(
+            "communityCreateArea"
+        );
+
+
+    if (!container || !createArea) return;
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (
+        !currentUser ||
+        currentUser.role !== "player"
+    ) {
+
+        createArea.innerHTML = "";
+
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                Community posts are available
+                to players only.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    createArea.innerHTML = `
+
+        <div
+            class="form-container"
+            style="max-width:100%; margin:0 0 25px 0;"
+        >
+
+            <h3 style="margin-bottom:15px;">
+                Create a Community Post
+            </h3>
+
+
+            <form onsubmit="createPost(event)">
+
+                <div class="form-group">
+
+                    <textarea
+                        id="postContent"
+                        placeholder="Share something with the football community..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Publish Post
+                </button>
+
+            </form>
+
+        </div>
+
+    `;
+
+
+    /*
+     * IMPORTANT:
+     * Repair/synchronize old posts before displaying them.
+     */
+    const posts = syncCommunityPostsWithPlayers();
+
+
+    if (!posts.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                No community posts yet.
+                Be the first player to post!
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        posts.map(
+            (post, index) => {
+
+                const postAuthorUser =
+                    getPostAuthorUser(post);
+
+                /*
+                 * The Community page NEVER uses an old/stale
+                 * post picture when the author is a registered player.
+                 * It uses the exact same profilePicture field used
+                 * by getRegisteredPlayers() on the Players page.
+                 */
+                const playerProfilePicture =
+                    postAuthorUser
+                        ? (
+                            postAuthorUser.profilePicture ||
+                            defaultProfilePicture
+                        )
+                        : (
+                            post.profilePicture ||
+                            defaultProfilePicture
+                        );
+
+                const playerName =
+                    postAuthorUser
+                        ? postAuthorUser.name
+                        : post.author;
+
+                return `
+
+            <div class="community-post">
+
+                <div class="post-author">
+
+                    <img
+                        src="${escapeAttribute(
+                            playerProfilePicture
+                        )}"
+                        alt="${escapeAttribute(
+                            playerName
+                        )}"
+                    >
+
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(
+                                playerName
+                            )}
+                        </strong>
+
+
+                        <div
+                            style="
+                                font-size:12px;
+                                color:#777;
+                            "
+                        >
+                            Player
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="post-content">
+                    ${escapeHTML(
+                        post.content
+                    )}
+                </div>
+
+
+                <button
+                    class="like-btn"
+                    onclick="likePost(${index})"
+                >
+                    ❤️ ${post.likes || 0}
+                </button>
+
+            </div>
+
+        `;
+            }
+        ).join("");
+
+}
+
+
+/* =========================================================
+   CREATE POST
+========================================================= */
+
+function createPost(event) {
+
+    event.preventDefault();
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (
+        !currentUser ||
+        currentUser.role !== "player"
+    ) {
+
+        alert(
+            "Only players can create community posts."
+        );
+
+        return;
+
+    }
+
+
+    const content =
+        document.getElementById(
+            "postContent"
+        ).value.trim();
+
+
+    if (!content) return;
+
+
+    const posts =
+        JSON.parse(
+            localStorage.getItem(
+                "footballPosts"
+            ) || "[]"
+        );
+
+
+    posts.unshift({
+
+        author:
+            currentUser.name,
+
+        authorId:
+            currentUser.id,
+
+        authorEmail:
+            currentUser.email,
+
+        profilePicture:
+            currentUser.profilePicture ||
+            defaultProfilePicture,
+
+        content:
+            content,
+
+        likes:
+            0
+
+    });
+
+
+    localStorage.setItem(
+        "footballPosts",
+        JSON.stringify(posts)
+    );
+
+
+    document.getElementById(
+        "postContent"
+    ).value = "";
+
+
+    displayPosts();
+
+}
+
+
+/* =========================================================
+   LIKE POST
+========================================================= */
+
+function likePost(index) {
+
+    const posts =
+        JSON.parse(
+            localStorage.getItem(
+                "footballPosts"
+            ) || "[]"
+        );
+
+
+    if (!posts[index]) return;
+
+
+    posts[index].likes =
+        (posts[index].likes || 0) + 1;
+
+
+    localStorage.setItem(
+        "footballPosts",
+        JSON.stringify(posts)
+    );
+
+
+    displayPosts();
+
+}
+
+
+/* =========================================================
+   TIPS
+========================================================= */
+
+function displayTips() {
+
+    const container =
+        document.getElementById(
+            "tipsContainer"
+        );
+
+
+    const createArea =
+        document.getElementById(
+            "tipCreateArea"
+        );
+
+
+    if (!container || !createArea) return;
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (
+        currentUser &&
+        currentUser.role === "scout"
+    ) {
+
+        createArea.innerHTML = `
+
+            <div
+                class="form-container"
+                style="max-width:100%; margin:0 0 25px 0;"
+            >
+
+                <h3 style="margin-bottom:15px;">
+                    Add Football Advice
+                </h3>
+
+
+                <form onsubmit="createTip(event)">
+
+                    <div class="form-group">
+
+                        <label>Tip Title</label>
+
+                        <input
+                            type="text"
+                            id="tipTitle"
+                            placeholder="Example: How to improve your finishing"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Advice</label>
+
+                        <textarea
+                            id="tipContent"
+                            placeholder="Write your football advice..."
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="primary-btn"
+                    >
+                        Publish Advice
+                    </button>
+
+                </form>
+
+            </div>
+
+        `;
+
+    } else {
+
+        createArea.innerHTML = "";
+
+    }
+
+
+    const tips =
+        JSON.parse(
+            localStorage.getItem(
+                "footballTips"
+            ) || "[]"
+        );
+
+
+    if (!tips.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                No football tips have been posted yet.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        tips.map(
+            tip => `
+
+            <div class="tip-card">
+
+                <h3>
+                    ${escapeHTML(
+                        tip.title
+                    )}
+                </h3>
+
+
+                <p>
+                    ${escapeHTML(
+                        tip.content
+                    )}
+                </p>
+
+
+                <div class="tip-author">
+
+                    Advice by:
+                    ${escapeHTML(
+                        tip.author
+                    )}
+
+                </div>
+
+            </div>
+
+        `
+        ).join("");
+
+}
+
+
+/* =========================================================
+   CREATE TIP
+========================================================= */
+
+function createTip(event) {
+
+    event.preventDefault();
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (
+        !currentUser ||
+        currentUser.role !== "scout"
+    ) {
+
+        alert(
+            "Only scouts/coaches can add football advice."
+        );
+
+        return;
+
+    }
+
+
+    const title =
+        document.getElementById(
+            "tipTitle"
+        ).value.trim();
+
+
+    const content =
+        document.getElementById(
+            "tipContent"
+        ).value.trim();
+
+
+    if (!title || !content) return;
+
+
+    const tips =
+        JSON.parse(
+            localStorage.getItem(
+                "footballTips"
+            ) || "[]"
+        );
+
+
+    tips.unshift({
+
+        title:
+            title,
+
+        content:
+            content,
+
+        author:
+            currentUser.name
+
+    });
+
+
+    localStorage.setItem(
+        "footballTips",
+        JSON.stringify(tips)
+    );
+
+
+    displayTips();
+
+}
+
+
+/* =========================================================
+   LOAD EDIT PROFILE
+========================================================= */
+
+function loadEditProfile() {
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (!currentUser) {
+
+        showPage("login");
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "editName"
+    ).value =
+        currentUser.name || "";
+
+
+    document.getElementById(
+        "editEmail"
+    ).value =
+        currentUser.email || "";
+
+
+    const picture =
+        currentUser.profilePicture ||
+        defaultProfilePicture;
+
+
+    document.getElementById(
+        "editProfilePicturePreview"
+    ).src = picture;
+
+
+    const playerFields =
+        document.getElementById(
+            "editPlayerFields"
+        );
+
+
+    if (currentUser.role === "player") {
+
+        playerFields.classList.remove(
+            "hidden"
+        );
+
+
+        document.getElementById(
+            "editPosition"
+        ).value =
+            currentUser.position || "";
+
+
+        document.getElementById(
+            "editAge"
+        ).value =
+            currentUser.age || "";
+
+
+        document.getElementById(
+            "editCountry"
+        ).value =
+            currentUser.country || "";
+
+    } else {
+
+        playerFields.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    document.getElementById(
+        "editPassword"
+    ).value = "";
+
+}
+
+
+/* =========================================================
+   EDIT PROFILE PICTURE PREVIEW
+========================================================= */
+
+function previewEditPicture(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    if (!file) return;
+
+
+    if (!file.type.startsWith("image/")) {
+
+        alert(
+            "Please select a valid image."
+        );
+
+        event.target.value = "";
+
+        return;
+
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload = function(e) {
+
+        document.getElementById(
+            "editProfilePicturePreview"
+        ).src =
+            e.target.result;
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================================
+   SAVE PROFILE
+========================================================= */
+
+function saveProfile(event) {
+
+    event.preventDefault();
+
+
+    const currentUser =
+        getCurrentUser();
+
+
+    if (!currentUser) {
+
+        alert(
+            "Please login first."
+        );
+
+        showPage("login");
+
+        return;
+
+    }
+
+
+    const name =
+        document.getElementById(
+            "editName"
+        ).value.trim();
+
+
+    const email =
+        document.getElementById(
+            "editEmail"
+        ).value.trim().toLowerCase();
+
+
+    if (!name || !email) {
+
+        alert(
+            "Name and email are required."
+        );
+
+        return;
+
+    }
+
+
+    const users =
+        getUsers();
+
+
+    const duplicate =
+        users.find(
+            user =>
+                user.email.toLowerCase() === email &&
+                user.id !== currentUser.id
+        );
+
+
+    if (duplicate) {
+
+        alert(
+            "Another account is already using this email."
+        );
+
+        return;
+
+    }
+
+
+    let position =
+        currentUser.position || "";
+
+
+    let age =
+        currentUser.age || "";
+
+
+    let country =
+        currentUser.country || "";
+
+
+    if (currentUser.role === "player") {
+
+        position =
+            document.getElementById(
+                "editPosition"
+            ).value;
+
+
+        age =
+            document.getElementById(
+                "editAge"
+            ).value;
+
+
+        country =
+            document.getElementById(
+                "editCountry"
+            ).value.trim();
+
+
+        if (!position || !age || !country) {
+
+            alert(
+                "Players must enter their position, age and country."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const password =
+        document.getElementById(
+            "editPassword"
+        ).value;
+
+
+    const pictureInput =
+        document.getElementById(
+            "editProfilePicture"
+        );
+
+
+    function finishProfileSave(
+        profilePicture
+    ) {
+
+        const oldName =
+            currentUser.name;
+
+
+        const updatedUser = {
+
+            ...currentUser,
+
+            name:
+                name,
+
+            email:
+                email,
+
+            position:
+                position,
+
+            age:
+                age,
+
+            country:
+                country,
+
+            profilePicture:
+                profilePicture ||
+                currentUser.profilePicture ||
+                defaultProfilePicture
+
+        };
+
+
+        if (password) {
+
+            updatedUser.password =
+                password;
+
+        }
+
+
+        const updatedUsers =
+            users.map(
+                user => {
+
+                    if (
+                        user.id ===
+                        currentUser.id
+                    ) {
+
+                        return updatedUser;
+
+                    }
+
+                    return user;
+
+                }
+            );
+
+
+        saveUsers(updatedUsers);
+
+        saveCurrentUser(updatedUser);
+
+
+        const posts =
+            JSON.parse(
+                localStorage.getItem(
+                    "footballPosts"
+                ) || "[]"
+            );
+
+
+        const updatedPosts =
+            posts.map(
+                post => {
+
+                    if (
+                        (
+                            post.authorId &&
+                            post.authorId === updatedUser.id
+                        ) ||
+                        (
+                            post.authorEmail &&
+                            post.authorEmail.toLowerCase() ===
+                            String(currentUser.email).toLowerCase()
+                        ) ||
+                        (
+                            !post.authorId &&
+                            !post.authorEmail &&
+                            post.author === oldName
+                        )
+                    ) {
+
+                        return {
+
+                            ...post,
+
+                            author:
+                                updatedUser.name,
+
+                            authorId:
+                                updatedUser.id,
+
+                            authorEmail:
+                                updatedUser.email,
+
+                            profilePicture:
+                                updatedUser.profilePicture
+
+                        };
+
+                    }
+
+                    return post;
+
+                }
+            );
+
+
+        localStorage.setItem(
+            "footballPosts",
+            JSON.stringify(updatedPosts)
+        );
+
+
+        updateUserInterface();
+
+        displayPlayers();
+
+        displayPosts();
+
+        displayTips();
+
+
+        alert(
+            "Profile updated successfully!"
+        );
+
+
+        showPage("home");
+
+    }
+
+
+    if (
+        pictureInput.files &&
+        pictureInput.files[0]
+    ) {
+
+        const file =
+            pictureInput.files[0];
+
+
+        if (!file.type.startsWith("image/")) {
+
+            alert(
+                "Please select a valid image."
+            );
+
+            return;
+
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            function(e) {
+
+                finishProfileSave(
+                    e.target.result
+                );
+
+            };
+
+
+        reader.readAsDataURL(file);
+
+    } else {
+
+        finishProfileSave(
+            currentUser.profilePicture ||
+            defaultProfilePicture
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
+
+/*
+ * Perform the requested one-time player-profile reset
+ * before displaying the application.
+ */
+resetPlayerProfilesOnce();
+
+updateUserInterface();
+
+displayPlayers();
+
+displayPosts();
+
+displayTips();
+
+</script>
+
+</body>
+</html>
