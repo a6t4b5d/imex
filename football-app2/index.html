@@ -526,6 +526,25 @@
         color: #777;
     }
 
+    .tip-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .tip-actions button {
+        border: none;
+        background: #f1f1f1;
+        padding: 8px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+    }
+
+    .tip-actions button:hover {
+        background: #e5e5e5;
+    }
+
     .edit-profile-card {
         max-width: 650px;
     }
@@ -3062,152 +3081,175 @@ function deleteCommunityReply(postIndex, commentIndex, replyIndex) {
    TIPS
 ========================================================= */
 
+function getTipUserKey(user) {
+    if (!user) return "";
+    if (user.id) return "id:" + String(user.id);
+    if (user.email) return "email:" + String(user.email).toLowerCase();
+    return "name:" + String(user.name || "").toLowerCase();
+}
+
 function displayTips() {
 
-    const container =
-        document.getElementById(
-            "tipsContainer"
-        );
-
-
-    const createArea =
-        document.getElementById(
-            "tipCreateArea"
-        );
-
+    const container = document.getElementById("tipsContainer");
+    const createArea = document.getElementById("tipCreateArea");
 
     if (!container || !createArea) return;
 
+    const currentUser = getCurrentUser();
 
-    const currentUser =
-        getCurrentUser();
-
-
-    if (
-        currentUser &&
-        currentUser.role === "scout"
-    ) {
-
+    if (currentUser && currentUser.role === "scout") {
         createArea.innerHTML = `
-
-            <div
-                class="form-container"
-                style="max-width:100%; margin:0 0 25px 0;"
-            >
-
-                <h3 style="margin-bottom:15px;">
-                    Add Football Advice
-                </h3>
-
-
+            <div class="form-container" style="max-width:100%; margin:0 0 25px 0;">
+                <h3 style="margin-bottom:15px;">Add Football Advice</h3>
                 <form onsubmit="createTip(event)">
-
                     <div class="form-group">
-
                         <label>Tip Title</label>
-
-                        <input
-                            type="text"
-                            id="tipTitle"
-                            placeholder="Example: How to improve your finishing"
-                            required
-                        >
-
+                        <input type="text" id="tipTitle" placeholder="Example: How to improve your finishing" required>
                     </div>
-
-
                     <div class="form-group">
-
                         <label>Advice</label>
-
-                        <textarea
-                            id="tipContent"
-                            placeholder="Write your football advice..."
-                            required
-                        ></textarea>
-
+                        <textarea id="tipContent" placeholder="Write your football advice..." required></textarea>
                     </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-btn"
-                    >
-                        Publish Advice
-                    </button>
-
+                    <button type="submit" class="primary-btn">Publish Advice</button>
                 </form>
-
             </div>
-
         `;
-
     } else {
-
         createArea.innerHTML = "";
-
     }
 
-
-    const tips =
-        JSON.parse(
-            localStorage.getItem(
-                "footballTips"
-            ) || "[]"
-        );
-
+    const tips = JSON.parse(localStorage.getItem("footballTips") || "[]");
 
     if (!tips.length) {
-
         container.innerHTML = `
-
             <div class="empty-message">
-
                 No football tips have been posted yet.
-
             </div>
-
         `;
-
         return;
-
     }
 
+    const currentUserKey = getTipUserKey(currentUser);
 
-    container.innerHTML =
-        tips.map(
-            tip => `
+    container.innerHTML = tips.map((tip, index) => {
+        const likedBy = Array.isArray(tip.likedBy) ? tip.likedBy : [];
+        const likeCount = likedBy.length;
+        const hasLiked = currentUserKey && likedBy.includes(currentUserKey);
+        const ownsTip = currentUser && (
+            (tip.authorId && currentUser.id && String(tip.authorId) === String(currentUser.id)) ||
+            (tip.authorEmail && currentUser.email && tip.authorEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+            (!tip.authorId && !tip.authorEmail && tip.author === currentUser.name)
+        );
 
+        return `
             <div class="tip-card">
-
-                <h3>
-                    ${escapeHTML(
-                        tip.title
-                    )}
-                </h3>
-
-
-                <p>
-                    ${escapeHTML(
-                        tip.content
-                    )}
-                </p>
-
-
+                <h3>${escapeHTML(tip.title)}</h3>
+                <p>${escapeHTML(tip.content)}</p>
                 <div class="tip-author">
-
-                    Advice by:
-                    ${escapeHTML(
-                        tip.author
-                    )}
-
+                    Advice by: ${escapeHTML(tip.author)}
                 </div>
-
+                <div class="tip-actions">
+                    ${currentUser ? `<button onclick="toggleTipLike(${index})">${hasLiked ? "♥" : "♡"} Like (${likeCount})</button>` : `<span style="color:#777;">Likes: ${likeCount}</span>`}
+                    ${ownsTip && currentUser.role === "scout" ? `<button onclick="deleteTip(${index})" style="color:#c62828;">🗑️ Delete</button>` : ""}
+                </div>
             </div>
+        `;
+    }).join("");
+}
 
-        `
-        ).join("");
+function createTip(event) {
 
+    event.preventDefault();
+
+    const currentUser = getCurrentUser();
+
+    if (!currentUser || currentUser.role !== "scout") {
+        alert("Only scouts/coaches can add football advice.");
+        return;
+    }
+
+    const title = document.getElementById("tipTitle").value.trim();
+    const content = document.getElementById("tipContent").value.trim();
+
+    if (!title || !content) return;
+
+    const tips = JSON.parse(localStorage.getItem("footballTips") || "[]");
+
+    tips.unshift({
+        id: Date.now().toString(),
+        title: title,
+        content: content,
+        author: currentUser.name,
+        authorId: currentUser.id,
+        authorEmail: currentUser.email,
+        likedBy: []
+    });
+
+    localStorage.setItem("footballTips", JSON.stringify(tips));
+    displayTips();
+}
+
+function toggleTipLike(tipIndex) {
+
+    const currentUser = getCurrentUser();
+
+    if (!currentUser || !["player", "scout"].includes(currentUser.role)) {
+        alert("Please log in to like advice.");
+        return;
+    }
+
+    const tips = JSON.parse(localStorage.getItem("footballTips") || "[]");
+    const tip = tips[tipIndex];
+
+    if (!tip) return;
+
+    if (!Array.isArray(tip.likedBy)) {
+        tip.likedBy = [];
+    }
+
+    const userKey = getTipUserKey(currentUser);
+    const likedIndex = tip.likedBy.indexOf(userKey);
+
+    if (likedIndex === -1) {
+        tip.likedBy.push(userKey);
+    } else {
+        tip.likedBy.splice(likedIndex, 1);
+    }
+
+    localStorage.setItem("footballTips", JSON.stringify(tips));
+    displayTips();
+}
+
+function deleteTip(tipIndex) {
+
+    const currentUser = getCurrentUser();
+
+    if (!currentUser || currentUser.role !== "scout") {
+        alert("Only scouts/coaches can delete football advice.");
+        return;
+    }
+
+    const tips = JSON.parse(localStorage.getItem("footballTips") || "[]");
+    const tip = tips[tipIndex];
+
+    if (!tip) return;
+
+    const ownsTip = (
+        (tip.authorId && currentUser.id && String(tip.authorId) === String(currentUser.id)) ||
+        (tip.authorEmail && currentUser.email && tip.authorEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+        (!tip.authorId && !tip.authorEmail && tip.author === currentUser.name)
+    );
+
+    if (!ownsTip) {
+        alert("You can only delete your own advice.");
+        return;
+    }
+
+    if (!confirm("Delete this football advice?")) return;
+
+    tips.splice(tipIndex, 1);
+    localStorage.setItem("footballTips", JSON.stringify(tips));
+    displayTips();
 }
 
 
