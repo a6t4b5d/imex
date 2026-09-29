@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Football Connect</title>
+<title>iMex⚽App</title>
 
 <style>
     * {
@@ -16,12 +16,18 @@
         font-family: Arial, sans-serif;
         background: #f4f7f5;
         color: #222;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     header {
         background: #0b6623;
         color: white;
         padding: 15px 5%;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -93,10 +99,170 @@
         font-weight: bold;
     }
 
+    .brand-link {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .clickable-profile {
+        cursor: pointer;
+    }
+
+    .clickable-profile:hover {
+        opacity: 0.88;
+    }
+
+    .current-user-profile-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .current-user-profile-link:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .crop-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+    }
+
+    .crop-modal-content {
+        background: white;
+        width: min(700px, 100%);
+        max-height: 90vh;
+        overflow: auto;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .crop-stage {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        background: #222;
+        overflow: hidden;
+        margin: 15px auto;
+    }
+
+    .crop-stage img {
+        display: block;
+        max-width: min(600px, 80vw);
+        max-height: 55vh;
+        user-select: none;
+    }
+
+    .crop-selection {
+        position: absolute;
+        border: 2px solid white;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+        cursor: move;
+        touch-action: none;
+    }
+
+    .crop-hint {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .profile-page-card {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .profile-top {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(300px, 1.4fr);
+        gap: 25px;
+        align-items: stretch;
+    }
+
+    .profile-main-image {
+        min-height: 360px;
+        background: #e9eee9;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .profile-main-image img {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        object-fit: contain;
+    }
+
+    .profile-details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+        gap: 15px;
+        align-content: start;
+    }
+
+    .profile-detail-box {
+        background: #f5f7f5;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .comments-area {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .comment {
+        background: #f5f7f5;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 8px;
+    }
+
+    .comment.reply {
+        margin-left: 35px;
+        background: #eef4ef;
+    }
+
+    .comment-actions {
+        margin-top: 6px;
+    }
+
+    .comment-actions button {
+        border: none;
+        background: transparent;
+        color: #0b6623;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 3px 6px;
+    }
+
+    @media (max-width: 700px) {
+        .profile-top {
+            grid-template-columns: 1fr;
+        }
+    }
+
     main {
         width: 90%;
         max-width: 1200px;
         margin: 30px auto;
+        flex: 1;
     }
 
     .page {
@@ -395,9 +561,44 @@
     footer {
         background: #0b6623;
         color: white;
-        text-align: center;
         padding: 25px;
-        margin-top: 50px;
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    footer p {
+        margin: 0;
+    }
+
+    .footer-company {
+        text-align: left;
+    }
+
+    .footer-company a,
+    .footer-company a:visited,
+    .footer-company a:hover,
+    .footer-company a:active {
+        color: white;
+        text-decoration: none;
+    }
+
+    .footer-copyright {
+        text-align: right;
+    }
+
+    @media (max-width: 700px) {
+        footer {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .footer-company,
+        .footer-copyright {
+            text-align: center;
+        }
     }
 
     @media (max-width: 700px) {
@@ -429,10 +630,9 @@
 
 <header>
 
-    <h1>⚽ Football Connect</h1>
+    <h1><a class="brand-link" href="#" onclick="showPage('feed'); return false;">iMex⚽App</a></h1>
 
     <nav>
-        <button onclick="showPage('home')">Home</button>
         <button onclick="showPage('players')">Players</button>
         <button id="communityNav" onclick="showPage('feed')">
             Community
@@ -452,7 +652,7 @@
 
         <div class="hero">
 
-            <h2>Welcome to Football Connect</h2>
+            <h2>Welcome to iMex⚽App</h2>
 
             <p>
                 Connect football players with scouts and coaches.
@@ -476,7 +676,7 @@
                 onclick="showPage('signup')"
                 style="margin-left:10px;"
             >
-                Join Football Connect
+                Join iMex⚽App
             </button>
 
         </div>
@@ -631,6 +831,8 @@
                             onchange="previewSignupPicture(event)"
                         >
 
+                        <small>Select a profile picture to use on your profile.</small>
+
                     </div>
 
 
@@ -763,6 +965,20 @@
             id="playersGrid"
             class="players-grid"
         ></div>
+
+    </section>
+
+
+    <!-- PLAYER PROFILE -->
+    <section id="playerProfile" class="page">
+
+        <div class="profile-page-card">
+            <button class="secondary-btn" onclick="showPage('players')" style="margin-bottom:18px;">
+                ← Back to Players
+            </button>
+
+            <div id="playerProfileContainer"></div>
+        </div>
 
     </section>
 
@@ -909,11 +1125,12 @@
                         <input
                             type="text"
                             id="editCountry"
+                            placeholder="Enter your country"
                         >
 
                     </div>
 
-                </div>
+</div>
 
 
                 <div class="form-group">
@@ -946,6 +1163,17 @@
                     Cancel
                 </button>
 
+
+                                <button
+                    type="button"
+                    class="secondary-btn"
+                    id="deleteAccountBtn"
+                    onclick="deleteMyAccount()"
+                    style="margin-left:8px; background:#b00020; color:white;"
+                >
+                    Delete Account
+                </button>
+
             </form>
 
         </div>
@@ -957,8 +1185,12 @@
 
 <footer>
 
-    <p>
-        © 2026 Football Connect. All rights reserved.
+    <p class="footer-company">
+        Powered by <a href="https://a6t4b5d.github.io/imex/" target="_blank" rel="noopener noreferrer"><strong>iMex MediTech Company</strong></a>
+    </p>
+
+    <p class="footer-copyright">
+        © 2026 iMex⚽App. All rights reserved.
     </p>
 
 </footer>
@@ -972,6 +1204,9 @@
 
 const defaultProfilePicture =
     "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27500%27 height=%27500%27 viewBox=%270 0 500 500%27%3E%3Crect width=%27500%27 height=%27500%27 fill=%27white%27/%3E%3C/svg%3E";
+
+
+
 
 
 /* =========================================================
@@ -1252,56 +1487,27 @@ function handleSignupRoleChange() {
 
 function previewSignupPicture(event) {
 
-    const file =
-        event.target.files[0];
-
-
-    const preview =
-        document.getElementById(
-            "signupPicturePreview"
-        );
-
+    const file = event.target.files[0];
+    const preview = document.getElementById("signupPicturePreview");
 
     if (!file) {
-
         preview.src = "";
-
         preview.classList.add("hidden");
-
         return;
-
     }
-
 
     if (!file.type.startsWith("image/")) {
-
-        alert(
-            "Please select an image file."
-        );
-
+        alert("Please select an image file.");
         event.target.value = "";
-
         return;
-
     }
 
-
-    const reader =
-        new FileReader();
-
-
+    const reader = new FileReader();
     reader.onload = function(e) {
-
-        preview.src =
-            e.target.result;
-
+        preview.src = e.target.result;
         preview.classList.remove("hidden");
-
     };
-
-
     reader.readAsDataURL(file);
-
 }
 
 
@@ -1312,8 +1518,6 @@ function previewSignupPicture(event) {
 function signup(event) {
 
     event.preventDefault();
-
-
     const name =
         document.getElementById(
             "signupName"
@@ -1416,6 +1620,14 @@ function signup(event) {
             "signupPicture"
         );
 
+    const finishWithPicture = function(profilePicture) {
+
+        finishSignup(
+            name, email, password, role, position, age, country,
+            profilePicture, ""
+        );
+    };
+
 
     if (
         role === "player" &&
@@ -1444,16 +1656,7 @@ function signup(event) {
 
         reader.onload = function(e) {
 
-            finishSignup(
-                name,
-                email,
-                password,
-                role,
-                position,
-                age,
-                country,
-                e.target.result
-            );
+            finishWithPicture(e.target.result);
 
         };
 
@@ -1462,16 +1665,7 @@ function signup(event) {
 
     } else {
 
-        finishSignup(
-            name,
-            email,
-            password,
-            role,
-            position,
-            age,
-            country,
-            defaultProfilePicture
-        );
+        finishWithPicture(defaultProfilePicture);
 
     }
 
@@ -1490,7 +1684,8 @@ function finishSignup(
     position,
     age,
     country,
-    profilePicture
+    profilePicture,
+    playingVideo = ""
 ) {
 
     const users =
@@ -1525,7 +1720,11 @@ function finishSignup(
 
         profilePicture:
             profilePicture ||
-            defaultProfilePicture
+            defaultProfilePicture,
+
+        playingVideo:
+            playingVideo ||
+            ""
 
     };
 
@@ -1719,20 +1918,25 @@ function updateUserInterface() {
 
             <div class="user-info">
 
-                <img
-                    class="header-profile-pic"
-                    src="${escapeAttribute(
-                        currentUser.profilePicture ||
-                        defaultProfilePicture
-                    )}"
-                    alt="Profile picture"
-                >
-
-                <span>
-                    ${escapeHTML(
-                        currentUser.name
-                    )}
-                </span>
+                ${currentUser.role === "player"
+                    ? `<a
+                        href="#"
+                        class="current-user-profile-link"
+                        onclick="event.preventDefault(); openPlayerProfile('${escapeAttribute(currentUser.id)}')"
+                        title="View my profile"
+                    >
+                        <img
+                            class="header-profile-pic clickable-profile"
+                            src="${escapeAttribute(
+                                currentUser.profilePicture ||
+                                defaultProfilePicture
+                            )}"
+                            alt="Profile picture"
+                        >
+                        <span>${escapeHTML(currentUser.name)}</span>
+                    </a>`
+                    : `<span class="current-user-name">${escapeHTML(currentUser.name)}</span>`
+                }
 
                 <span class="role-badge">
                     ${roleText}
@@ -1842,6 +2046,10 @@ function getRegisteredPlayers() {
                 user.profilePicture ||
                 defaultProfilePicture,
 
+            playingVideo:
+                user.playingVideo ||
+                "",
+
             registeredUser:
                 true
 
@@ -1902,7 +2110,7 @@ function displayPlayers(
 
         <div class="player-card">
 
-            <div class="player-image">
+            <div class="player-image clickable-profile" onclick="openPlayerProfile('${escapeAttribute(player.id)}')" title="View player profile">
 
                 <img
                     src="${escapeAttribute(
@@ -1977,6 +2185,51 @@ function displayPlayers(
     `
     ).join("");
 
+}
+
+
+/* =========================================================
+   PLAYER PROFILE
+========================================================= */
+
+function openPlayerProfile(playerId) {
+    const users = getUsers();
+    const player = users.find(user =>
+        user.role === "player" &&
+        String(user.id) === String(playerId)
+    );
+
+    if (!player) {
+        alert("Player profile could not be found.");
+        return;
+    }
+
+    const container = document.getElementById("playerProfileContainer");
+    if (!container) return;
+
+    const picture = player.profilePicture || defaultProfilePicture;
+    container.innerHTML = `
+        <h2 class="section-title">${escapeHTML(player.name)}'s Profile</h2>
+
+        <div class="profile-top">
+            <div class="profile-main-image">
+                <img src="${escapeAttribute(picture)}" alt="${escapeAttribute(player.name)}">
+            </div>
+
+            <div class="profile-details">
+                <div class="profile-detail-box"><strong>Name</strong><br>${escapeHTML(player.name)}</div>
+                <div class="profile-detail-box"><strong>Position</strong><br>${escapeHTML(player.position || "Position not added")}</div>
+                <div class="profile-detail-box"><strong>Age</strong><br>${escapeHTML(player.age || "Not added")}</div>
+                <div class="profile-detail-box"><strong>Country</strong><br>${escapeHTML(player.country || "Country not added")}</div>
+            </div>
+        </div>
+
+        ${getCurrentUser() && getCurrentUser().role === "scout"
+            ? `<button class="contact-btn" onclick="contactPlayer('${escapeAttribute(player.name)}')" style="margin-top:20px;">Contact Player</button>`
+            : ""}
+    `;
+
+    showPage("playerProfile");
 }
 
 
@@ -2355,12 +2608,15 @@ function displayPosts() {
                 <div class="post-author">
 
                     <img
+                        class="clickable-profile"
+                        onclick="openPlayerProfile('${escapeAttribute(postAuthorUser ? postAuthorUser.id : '')}')"
                         src="${escapeAttribute(
                             playerProfilePicture
                         )}"
                         alt="${escapeAttribute(
                             playerName
                         )}"
+                        title="View player profile"
                     >
 
 
@@ -2400,6 +2656,29 @@ function displayPosts() {
                 >
                     ❤️ ${post.likes || 0}
                 </button>
+
+                <button
+                    class="secondary-btn"
+                    onclick="toggleComments(${index})"
+                    style="margin-left:8px;"
+                >
+                    💬 Comments ${Array.isArray(post.comments) ? '(' + post.comments.length + ')' : ''}
+                </button>
+
+                ${currentUser && (
+                    (post.authorId && String(post.authorId) === String(currentUser.id)) ||
+                    (!post.authorId && post.authorEmail && currentUser.email && post.authorEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+                    (!post.authorId && !post.authorEmail && post.author === currentUser.name)
+                ) ? `
+                <button
+                    class="secondary-btn"
+                    onclick="deleteCommunityPost(${index})"
+                    style="margin-left:8px; color:#c62828;"
+                >
+                    🗑️ Delete Post
+                </button>` : ""}
+
+                <div id="comments-${index}" class="comments-area hidden"></div>
 
             </div>
 
@@ -2473,7 +2752,10 @@ function createPost(event) {
             content,
 
         likes:
-            0
+            0,
+
+        comments:
+            []
 
     });
 
@@ -2523,6 +2805,243 @@ function likePost(index) {
 
     displayPosts();
 
+}
+
+
+/* =========================================================
+   COMMUNITY COMMENTS
+========================================================= */
+
+function toggleComments(postIndex) {
+    const box = document.getElementById("comments-" + postIndex);
+    if (!box) return;
+    if (box.classList.contains("hidden")) {
+        box.classList.remove("hidden");
+        renderComments(postIndex);
+    } else {
+        box.classList.add("hidden");
+    }
+}
+
+function renderComments(postIndex) {
+    const box = document.getElementById("comments-" + postIndex);
+    if (!box) return;
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const post = posts[postIndex];
+    if (!post) return;
+
+    if (!Array.isArray(post.comments)) post.comments = [];
+
+    const currentUser = getCurrentUser();
+    const canComment = currentUser && currentUser.role === "player";
+
+    let html = "";
+
+    if (!post.comments.length) {
+        html += '<div style="color:#777; margin-bottom:10px;">No comments yet.</div>';
+    }
+
+    post.comments.forEach((comment, commentIndex) => {
+        const commentOwnedByCurrentUser = currentUser && (
+            (comment.authorId && String(comment.authorId) === String(currentUser.id)) ||
+            (!comment.authorId && comment.authorEmail && currentUser.email && comment.authorEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+            (!comment.authorId && !comment.authorEmail && comment.author === currentUser.name)
+        );
+
+        html += `
+            <div class="comment">
+                <strong>${escapeHTML(comment.author)}</strong>
+                <div>${escapeHTML(comment.content)}</div>
+                <div class="comment-actions" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
+                    ${canComment ? `<button onclick="replyToComment(${postIndex}, ${commentIndex})">Reply</button>` : ""}
+                    ${commentOwnedByCurrentUser ? `<button onclick="deleteCommunityComment(${postIndex}, ${commentIndex})" style="color:#c62828;">🗑️ Delete</button>` : ""}
+                </div>
+            </div>
+        `;
+
+        if (Array.isArray(comment.replies)) {
+            comment.replies.forEach((reply, replyIndex) => {
+                const replyOwnedByCurrentUser = currentUser && (
+                    (reply.authorId && String(reply.authorId) === String(currentUser.id)) ||
+                    (!reply.authorId && reply.authorEmail && currentUser.email && reply.authorEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+                    (!reply.authorId && !reply.authorEmail && reply.author === currentUser.name)
+                );
+
+                html += `
+                    <div class="comment reply">
+                        <strong>${escapeHTML(reply.author)}</strong>
+                        <div>${escapeHTML(reply.content)}</div>
+                        ${replyOwnedByCurrentUser ? `<div class="comment-actions" style="margin-top:6px;"><button onclick="deleteCommunityReply(${postIndex}, ${commentIndex}, ${replyIndex})" style="color:#c62828;">🗑️ Delete</button></div>` : ""}
+                    </div>
+                `;
+            });
+        }
+    });
+
+    if (canComment) {
+        html += `
+            <div style="margin-top:12px; display:flex; gap:8px;">
+                <input id="comment-input-${postIndex}" type="text" placeholder="Write a comment..." style="flex:1; padding:10px; border:1px solid #ccc; border-radius:6px;">
+                <button class="primary-btn" onclick="addComment(${postIndex})">Comment</button>
+            </div>
+        `;
+    }
+
+    box.innerHTML = html;
+}
+
+function addComment(postIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can comment on community posts.");
+        return;
+    }
+
+    const input = document.getElementById("comment-input-" + postIndex);
+    const content = input ? input.value.trim() : "";
+    if (!content) return;
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    if (!posts[postIndex]) return;
+    if (!Array.isArray(posts[postIndex].comments)) posts[postIndex].comments = [];
+
+    posts[postIndex].comments.push({
+        id: Date.now().toString(),
+        author: currentUser.name,
+        authorId: currentUser.id,
+        authorEmail: currentUser.email,
+        content: content,
+        replies: []
+    });
+
+    localStorage.setItem("footballPosts", JSON.stringify(posts));
+    renderComments(postIndex);
+    displayPosts();
+    const box = document.getElementById("comments-" + postIndex);
+    if (box) { box.classList.remove("hidden"); renderComments(postIndex); }
+}
+
+function replyToComment(postIndex, commentIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can reply to comments.");
+        return;
+    }
+
+    const content = prompt("Write your reply:");
+    if (!content || !content.trim()) return;
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const post = posts[postIndex];
+    if (!post || !post.comments || !post.comments[commentIndex]) return;
+
+    if (!Array.isArray(post.comments[commentIndex].replies)) post.comments[commentIndex].replies = [];
+
+    post.comments[commentIndex].replies.push({
+        id: Date.now().toString(),
+        author: currentUser.name,
+        authorId: currentUser.id,
+        authorEmail: currentUser.email,
+        content: content.trim()
+    });
+
+    localStorage.setItem("footballPosts", JSON.stringify(posts));
+    renderComments(postIndex);
+}
+
+
+/* =========================================================
+   DELETE COMMUNITY POSTS / COMMENTS / REPLIES
+========================================================= */
+
+function currentUserOwnsContent(content) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || !content) return false;
+
+    if (content.authorId && currentUser.id) {
+        return String(content.authorId) === String(currentUser.id);
+    }
+
+    if (content.authorEmail && currentUser.email) {
+        return content.authorEmail.toLowerCase() === currentUser.email.toLowerCase();
+    }
+
+    return !!(content.author && currentUser.name && content.author === currentUser.name);
+}
+
+function deleteCommunityPost(postIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can delete community posts.");
+        return;
+    }
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const post = posts[postIndex];
+    if (!post || !currentUserOwnsContent(post)) {
+        alert("You can only delete your own community posts.");
+        return;
+    }
+
+    if (!confirm("Delete this community post? This will also delete its comments and replies.")) {
+        return;
+    }
+
+    posts.splice(postIndex, 1);
+    localStorage.setItem("footballPosts", JSON.stringify(posts));
+    displayPosts();
+}
+
+function deleteCommunityComment(postIndex, commentIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can delete comments.");
+        return;
+    }
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const post = posts[postIndex];
+    const comment = post && Array.isArray(post.comments) ? post.comments[commentIndex] : null;
+    if (!comment || !currentUserOwnsContent(comment)) {
+        alert("You can only delete your own comments.");
+        return;
+    }
+
+    if (!confirm("Delete this comment and its replies?")) return;
+
+    post.comments.splice(commentIndex, 1);
+    localStorage.setItem("footballPosts", JSON.stringify(posts));
+    renderComments(postIndex);
+    displayPosts();
+    const box = document.getElementById("comments-" + postIndex);
+    if (box) {
+        box.classList.remove("hidden");
+        renderComments(postIndex);
+    }
+}
+
+function deleteCommunityReply(postIndex, commentIndex, replyIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can delete replies.");
+        return;
+    }
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const post = posts[postIndex];
+    const comment = post && Array.isArray(post.comments) ? post.comments[commentIndex] : null;
+    const reply = comment && Array.isArray(comment.replies) ? comment.replies[replyIndex] : null;
+    if (!reply || !currentUserOwnsContent(reply)) {
+        alert("You can only delete your own replies.");
+        return;
+    }
+
+    if (!confirm("Delete this reply?")) return;
+
+    comment.replies.splice(replyIndex, 1);
+    localStorage.setItem("footballPosts", JSON.stringify(posts));
+    renderComments(postIndex);
 }
 
 
@@ -2793,7 +3312,10 @@ function loadEditProfile() {
     document.getElementById(
         "editProfilePicturePreview"
     ).src = picture;
-
+const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+    if (deleteAccountBtn) {
+        deleteAccountBtn.classList.toggle("hidden", currentUser.role !== "player");
+    }
 
     const playerFields =
         document.getElementById(
@@ -2820,10 +3342,10 @@ function loadEditProfile() {
             currentUser.age || "";
 
 
-        document.getElementById(
-            "editCountry"
-        ).value =
-            currentUser.country || "";
+        const editCountry = document.getElementById("editCountry");
+        if (editCountry) {
+            editCountry.value = currentUser.country || "";
+        }
 
     } else {
 
@@ -2847,42 +3369,23 @@ function loadEditProfile() {
 
 function previewEditPicture(event) {
 
-    const file =
-        event.target.files[0];
+    const file = event.target.files[0];
 
-
-    if (!file) return;
-
-
-    if (!file.type.startsWith("image/")) {
-
-        alert(
-            "Please select a valid image."
-        );
-
-        event.target.value = "";
-
+    if (!file) {
         return;
-
     }
 
+    if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image.");
+        event.target.value = "";
+        return;
+    }
 
-    const reader =
-        new FileReader();
-
-
+    const reader = new FileReader();
     reader.onload = function(e) {
-
-        document.getElementById(
-            "editProfilePicturePreview"
-        ).src =
-            e.target.result;
-
+        document.getElementById("editProfilePicturePreview").src = e.target.result;
     };
-
-
     reader.readAsDataURL(file);
-
 }
 
 
@@ -2984,10 +3487,8 @@ function saveProfile(event) {
             ).value;
 
 
-        country =
-            document.getElementById(
-                "editCountry"
-            ).value.trim();
+        const editCountry = document.getElementById("editCountry");
+        country = editCountry ? editCountry.value.trim() : "";
 
 
         if (!position || !age || !country) {
@@ -3016,7 +3517,8 @@ function saveProfile(event) {
 
 
     function finishProfileSave(
-        profilePicture
+        profilePicture,
+        playingVideo
     ) {
 
         const oldName =
@@ -3045,7 +3547,12 @@ function saveProfile(event) {
             profilePicture:
                 profilePicture ||
                 currentUser.profilePicture ||
-                defaultProfilePicture
+                defaultProfilePicture,
+
+            playingVideo:
+                playingVideo !== undefined
+                    ? playingVideo
+                    : (currentUser.playingVideo || "")
 
         };
 
@@ -3161,52 +3668,72 @@ function saveProfile(event) {
 
     }
 
-
-    if (
-        pictureInput.files &&
-        pictureInput.files[0]
-    ) {
-
-        const file =
-            pictureInput.files[0];
-
-
-        if (!file.type.startsWith("image/")) {
-
-            alert(
-                "Please select a valid image."
-            );
-
-            return;
-
-        }
-
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            function(e) {
-
-                finishProfileSave(
-                    e.target.result
-                );
-
-            };
-
-
-        reader.readAsDataURL(file);
-
-    } else {
-
+    function finishWithPicture(profilePicture) {
         finishProfileSave(
-            currentUser.profilePicture ||
-            defaultProfilePicture
+            profilePicture || currentUser.profilePicture || defaultProfilePicture,
+            currentUser.playingVideo || ""
         );
-
     }
 
+    if (pictureInput.files && pictureInput.files[0]) {
+        const file = pictureInput.files[0];
+        if (!file.type.startsWith("image/")) {
+            alert("Please select a valid image.");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            finishWithPicture(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        finishWithPicture(currentUser.profilePicture || defaultProfilePicture);
+    }
+
+}
+
+
+/* =========================================================
+   DELETE ACCOUNT
+========================================================= */
+
+function deleteMyAccount() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) {
+        return;
+    }
+
+    const users = getUsers().filter(user => user.id !== currentUser.id);
+    saveUsers(users);
+
+    const posts = JSON.parse(localStorage.getItem("footballPosts") || "[]");
+    const remainingPosts = posts
+        .filter(post => String(post.authorId || "") !== String(currentUser.id))
+        .map(post => {
+            if (Array.isArray(post.comments)) {
+                post.comments = post.comments
+                    .filter(comment => String(comment.authorId || "") !== String(currentUser.id))
+                    .map(comment => ({
+                        ...comment,
+                        replies: Array.isArray(comment.replies)
+                            ? comment.replies.filter(reply => String(reply.authorId || "") !== String(currentUser.id))
+                            : []
+                    }));
+            }
+            return post;
+        });
+
+    localStorage.setItem("footballPosts", JSON.stringify(remainingPosts));
+    localStorage.removeItem("currentFootballUser");
+
+    alert("Your account has been deleted.");
+    updateUserInterface();
+    displayPlayers();
+    displayPosts();
+    displayTips();
+    showPage("signup");
 }
 
 
