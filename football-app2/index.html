@@ -3327,7 +3327,7 @@ function loadEditProfile() {
     ).src = picture;
 const deleteAccountBtn = document.getElementById("deleteAccountBtn");
     if (deleteAccountBtn) {
-        deleteAccountBtn.classList.toggle("hidden", currentUser.role !== "player");
+        deleteAccountBtn.classList.toggle("hidden", !["player", "scout"].includes(currentUser.role));
     }
 
     const playerFields =
@@ -3712,7 +3712,7 @@ function saveProfile(event) {
 
 function deleteMyAccount() {
     const currentUser = getCurrentUser();
-    if (!currentUser) return;
+    if (!currentUser || !["player", "scout"].includes(currentUser.role)) return;
 
     if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) {
         return;
