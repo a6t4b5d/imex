@@ -387,7 +387,7 @@
 
     .players-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 22px;
     }
 
@@ -623,6 +623,19 @@
             width: 100%;
         }
     }
+
+    @media (max-width: 900px) {
+        .players-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 600px) {
+        .players-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
 </style>
 </head>
 
