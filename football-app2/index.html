@@ -1228,6 +1228,14 @@
 </footer>
 
 
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
+
 <script>
 
 /* =========================================================
@@ -3149,7 +3157,7 @@ function displayTips() {
                     Advice by: ${escapeHTML(tip.author)}
                 </div>
                 <div class="tip-actions">
-                    ${currentUser ? `<button onclick="toggleTipLike(${index})">${hasLiked ? "♥" : "♡"} Like (${likeCount})</button>` : `<span style="color:#777;">Likes: ${likeCount}</span>`}
+                    ${currentUser ? `<button class="like-btn" onclick="toggleTipLike(${index})">❤️ ${likeCount}</button>` : `<span style="color:#777;">❤️ ${likeCount}</span>`}
                     ${ownsTip && currentUser.role === "scout" ? `<button onclick="deleteTip(${index})" style="color:#c62828;">🗑️ Delete</button>` : ""}
                 </div>
             </div>
@@ -3793,6 +3801,771 @@ function deleteMyAccount() {
 
 
 /* =========================================================
+   FIREBASE BACKEND
+   Shared database/authentication for iMex⚽App
+========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBvzzN71X1AFjbkKrNTHUQ1vc3hkLEiIsQ",
+    authDomain: "imexfootballapp.firebaseapp.com",
+    projectId: "imexfootballapp",
+    storageBucket: "imexfootballapp.firebasestorage.app",
+    messagingSenderId: "1017830178606",
+    appId: "1:1017830178606:web:9632a715a33ae71e9a44bf",
+    measurementId: "G-PVWN4J7TTD"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const firebaseAuth = firebase.auth();
+const firebaseDB = firebase.firestore();
+const firebaseStorage = firebase.storage();
+try {
+    firebase.analytics();
+} catch (analyticsError) {
+    console.warn("Firebase Analytics is unavailable on this page.", analyticsError);
+}
+
+const FIREBASE_USERS_CACHE = "firebaseUsersCache";
+const FIREBASE_POSTS_CACHE = "firebasePostsCache";
+const FIREBASE_TIPS_CACHE = "firebaseTipsCache";
+const FIREBASE_CURRENT_USER_CACHE = "firebaseCurrentUserCache";
+const FIREBASE_MIGRATION_KEY = "firebaseMigrationV1";
+
+let firebaseReady = false;
+let firebaseInitialLoadFinished = false;
+
+function firebaseCacheGet(key, fallback = []) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+    } catch (error) {
+        return fallback;
+    }
+}
+
+function firebaseCacheSet(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
+
+function getUsers() {
+    return firebaseCacheGet(FIREBASE_USERS_CACHE, []);
+}
+
+function saveUsers(users) {
+    const safeUsers = Array.isArray(users) ? users : [];
+    firebaseCacheSet(FIREBASE_USERS_CACHE, safeUsers);
+    if (!firebaseReady) return;
+
+    safeUsers.forEach(user => {
+        if (!user || !user.id) return;
+        const cleanUser = { ...user };
+        delete cleanUser.password;
+        firebaseDB.collection("users").doc(String(user.id)).set(cleanUser, { merge: true }).catch(error => {
+            console.error("Could not save user to Firebase:", error);
+        });
+    });
+}
+
+function getCurrentUser() {
+    const cached = firebaseCacheGet(FIREBASE_CURRENT_USER_CACHE, null);
+    return cached || null;
+}
+
+function saveCurrentUser(user) {
+    if (user) {
+        const safeUser = { ...user };
+        delete safeUser.password;
+        firebaseCacheSet(FIREBASE_CURRENT_USER_CACHE, safeUser);
+    } else {
+        localStorage.removeItem(FIREBASE_CURRENT_USER_CACHE);
+    }
+}
+
+function firebaseSetUsersCache(users) {
+    const safeUsers = Array.isArray(users) ? users : [];
+    firebaseCacheSet(FIREBASE_USERS_CACHE, safeUsers);
+}
+
+function firebaseSetPostsCache(posts) {
+    firebaseCacheSet(FIREBASE_POSTS_CACHE, Array.isArray(posts) ? posts : []);
+    localStorage.setItem("footballPosts", JSON.stringify(Array.isArray(posts) ? posts : []));
+}
+
+function firebaseSetTipsCache(tips) {
+    firebaseCacheSet(FIREBASE_TIPS_CACHE, Array.isArray(tips) ? tips : []);
+    localStorage.setItem("footballTips", JSON.stringify(Array.isArray(tips) ? tips : []));
+}
+
+function firebaseUserFromDoc(doc) {
+    const data = doc.data() || {};
+    return {
+        ...data,
+        id: doc.id,
+        profilePicture: data.profilePicture || defaultProfilePicture
+    };
+}
+
+async function uploadProfilePictureToFirebase(file, uid) {
+    if (!file) return defaultProfilePicture;
+    if (!file.type.startsWith("image/")) throw new Error("Please select a valid image.");
+
+    const extension = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const ref = firebaseStorage.ref(`profilePictures/${uid}.${extension}`);
+    await ref.put(file);
+    return await ref.getDownloadURL();
+}
+
+async function uploadDataUrlToFirebase(dataUrl, uid, extension = "jpg") {
+    if (!dataUrl || !String(dataUrl).startsWith("data:image/")) return dataUrl || defaultProfilePicture;
+    const ref = firebaseStorage.ref(`profilePictures/${uid}.${extension}`);
+    await ref.putString(dataUrl, "data_url");
+    return await ref.getDownloadURL();
+}
+
+async function migrateLocalStorageToFirebase() {
+    if (localStorage.getItem(FIREBASE_MIGRATION_KEY) === "done") return;
+
+    const legacyUsers = firebaseCacheGet("footballUsers", []);
+    const legacyPosts = firebaseCacheGet("footballPosts", []);
+    const legacyTips = firebaseCacheGet("footballTips", []);
+
+    if (!Array.isArray(legacyUsers) || legacyUsers.length === 0) {
+        localStorage.setItem(FIREBASE_MIGRATION_KEY, "done");
+        return;
+    }
+
+    console.log("Migrating existing iMex⚽App localStorage data to Firebase...");
+    const idMap = {};
+    const migratedUsers = [];
+
+    for (const legacyUser of legacyUsers) {
+        if (!legacyUser || !legacyUser.email || !legacyUser.password) continue;
+
+        try {
+            let credential;
+            try {
+                credential = await firebaseAuth.createUserWithEmailAndPassword(
+                    legacyUser.email,
+                    legacyUser.password
+                );
+            } catch (createError) {
+                if (createError.code === "auth/email-already-in-use") {
+                    credential = await firebaseAuth.signInWithEmailAndPassword(
+                        legacyUser.email,
+                        legacyUser.password
+                    );
+                } else {
+                    throw createError;
+                }
+            }
+
+            const uid = credential.user.uid;
+            idMap[String(legacyUser.id)] = uid;
+            let migratedPicture = legacyUser.profilePicture || defaultProfilePicture;
+            if (String(migratedPicture).startsWith("data:image/")) {
+                try {
+                    const mimeMatch = String(migratedPicture).match(/^data:image\/([^;]+)/i);
+                    migratedPicture = await uploadDataUrlToFirebase(
+                        migratedPicture,
+                        uid,
+                        mimeMatch ? mimeMatch[1] : "jpg"
+                    );
+                } catch (pictureError) {
+                    console.warn("Could not move a legacy profile picture to Firebase Storage:", pictureError);
+                }
+            }
+
+            const migratedUser = {
+                ...legacyUser,
+                id: uid,
+                profilePicture: migratedPicture
+            };
+            delete migratedUser.password;
+
+            await firebaseDB.collection("users").doc(uid).set(migratedUser, { merge: true });
+            migratedUsers.push(migratedUser);
+            await firebaseAuth.signOut();
+        } catch (error) {
+            console.error("Could not migrate user:", legacyUser.email, error);
+        }
+    }
+
+    for (const legacyPost of Array.isArray(legacyPosts) ? legacyPosts : []) {
+        try {
+            const post = {
+                ...legacyPost,
+                authorId: idMap[String(legacyPost.authorId)] || legacyPost.authorId || "",
+                createdAt: legacyPost.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+            };
+            delete post.id;
+            await firebaseDB.collection("posts").add(post);
+        } catch (error) {
+            console.error("Could not migrate community post:", error);
+        }
+    }
+
+    for (const legacyTip of Array.isArray(legacyTips) ? legacyTips : []) {
+        try {
+            const tip = {
+                ...legacyTip,
+                authorId: idMap[String(legacyTip.authorId)] || legacyTip.authorId || "",
+                createdAt: legacyTip.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+            };
+            delete tip.id;
+            await firebaseDB.collection("tips").add(tip);
+        } catch (error) {
+            console.error("Could not migrate tip:", error);
+        }
+    }
+
+    localStorage.setItem(FIREBASE_MIGRATION_KEY, "done");
+    firebaseSetUsersCache(migratedUsers);
+    alert("Your existing iMex⚽App information has been transferred to Firebase.");
+}
+
+function startFirebaseListeners() {
+    firebaseDB.collection("users").onSnapshot(snapshot => {
+        const users = snapshot.docs.map(firebaseUserFromDoc);
+        firebaseSetUsersCache(users);
+        const current = getCurrentUser();
+        if (current) {
+            const refreshed = users.find(user => String(user.id) === String(current.id));
+            if (refreshed) saveCurrentUser(refreshed);
+        }
+        updateUserInterface();
+        displayPlayers();
+    }, error => console.error("Firebase users listener:", error));
+
+    firebaseDB.collection("posts").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        const posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        firebaseSetPostsCache(posts);
+        displayPosts();
+    }, error => {
+        console.error("Firebase posts listener:", error);
+        firebaseDB.collection("posts").onSnapshot(snapshot => {
+            firebaseSetPostsCache(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            displayPosts();
+        });
+    });
+
+    firebaseDB.collection("tips").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        const tips = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        firebaseSetTipsCache(tips);
+        displayTips();
+    }, error => {
+        console.error("Firebase tips listener:", error);
+        firebaseDB.collection("tips").onSnapshot(snapshot => {
+            firebaseSetTipsCache(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            displayTips();
+        });
+    });
+}
+
+async function firebaseInitializeApp() {
+    try {
+        firebaseReady = true;
+        await migrateLocalStorageToFirebase();
+        startFirebaseListeners();
+        firebaseAuth.onAuthStateChanged(async authUser => {
+            if (!authUser) {
+                saveCurrentUser(null);
+                updateUserInterface();
+                return;
+            }
+
+            try {
+                const userDoc = await firebaseDB.collection("users").doc(authUser.uid).get();
+                if (userDoc.exists) {
+                    saveCurrentUser(firebaseUserFromDoc(userDoc));
+                }
+            } catch (error) {
+                console.error("Could not load Firebase profile:", error);
+            }
+            updateUserInterface();
+            displayPlayers();
+            displayPosts();
+            displayTips();
+        });
+        firebaseInitialLoadFinished = true;
+    } catch (error) {
+        firebaseReady = false;
+        console.error("Firebase initialization failed:", error);
+        alert("Firebase could not be connected. Check your Firebase Authentication and Firestore setup.");
+    }
+}
+
+/* Firebase versions of account actions */
+
+async function signup(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+    const password = document.getElementById("signupPassword").value;
+    const role = document.getElementById("signupRole").value;
+
+    let position = "", age = "", country = "";
+    if (!name || !email || !password || !role) {
+        alert("Please complete all required fields.");
+        return;
+    }
+
+    if (role === "player") {
+        position = document.getElementById("signupPosition").value;
+        age = document.getElementById("signupAge").value;
+        country = document.getElementById("signupCountry").value.trim();
+        if (!position || !age || !country) {
+            alert("Players must enter their position, age and country.");
+            return;
+        }
+    }
+
+    const pictureInput = document.getElementById("signupPicture");
+    try {
+        const credential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        const uid = credential.user.uid;
+        let profilePicture = defaultProfilePicture;
+        if (pictureInput.files && pictureInput.files[0]) {
+            profilePicture = await uploadProfilePictureToFirebase(pictureInput.files[0], uid);
+        }
+
+        const newUser = {
+            id: uid,
+            name,
+            email,
+            role,
+            position,
+            age,
+            country,
+            profilePicture,
+            playingVideo: "",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await firebaseDB.collection("users").doc(uid).set(newUser);
+        saveCurrentUser(newUser);
+        await firebaseAuth.currentUser.updateProfile({ displayName: name });
+
+        alert("Account created successfully!");
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("home");
+        event.target.reset();
+        document.getElementById("playerSignupFields").classList.add("hidden");
+    } catch (error) {
+        console.error(error);
+        alert(error.code === "auth/email-already-in-use" ? "An account with this email already exists." : (error.message || "Could not create account."));
+    }
+}
+
+async function login(event) {
+    event.preventDefault();
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+        const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        const userDoc = await firebaseDB.collection("users").doc(credential.user.uid).get();
+        if (!userDoc.exists) throw new Error("Your Firebase account exists, but your iMex⚽App profile was not found.");
+        const user = firebaseUserFromDoc(userDoc);
+        saveCurrentUser(user);
+        alert("Login successful!");
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("home");
+    } catch (error) {
+        console.error(error);
+        alert(error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found" ? "Invalid email or password." : (error.message || "Login failed."));
+    }
+}
+
+async function logout() {
+    try {
+        await firebaseAuth.signOut();
+    } catch (error) {
+        console.error(error);
+    }
+    saveCurrentUser(null);
+    updateUserInterface();
+    displayPlayers();
+    displayPosts();
+    displayTips();
+    showPage("home");
+}
+
+/* Firebase versions of community actions */
+
+function getFirebasePostsCache() {
+    return firebaseCacheGet(FIREBASE_POSTS_CACHE, firebaseCacheGet("footballPosts", []));
+}
+
+function syncCommunityPostsWithPlayers() {
+    return getFirebasePostsCache();
+}
+
+async function createPost(event) {
+    event.preventDefault();
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can create community posts.");
+        return;
+    }
+    const content = document.getElementById("postContent").value.trim();
+    if (!content) return;
+
+    try {
+        await firebaseDB.collection("posts").add({
+            author: currentUser.name,
+            authorId: currentUser.id,
+            authorEmail: currentUser.email,
+            profilePicture: currentUser.profilePicture || defaultProfilePicture,
+            content,
+            likes: 0,
+            comments: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("postContent").value = "";
+    } catch (error) {
+        console.error(error);
+        alert("Could not publish the post. Check your Firestore rules.");
+    }
+}
+
+async function likePost(index) {
+    const posts = getFirebasePostsCache();
+    const post = posts[index];
+    if (!post || !post.id) return;
+    try {
+        await firebaseDB.collection("posts").doc(post.id).update({
+            likes: (post.likes || 0) + 1
+        });
+    } catch (error) {
+        console.error(error);
+        alert("Could not like this post.");
+    }
+}
+
+async function addComment(postIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can comment.");
+        return;
+    }
+    const input = document.getElementById(`comment-input-${postIndex}`);
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    const posts = getFirebasePostsCache();
+    const post = posts[postIndex];
+    if (!post || !post.id) return;
+    const comments = Array.isArray(post.comments) ? [...post.comments] : [];
+    comments.push({
+        author: currentUser.name,
+        authorId: currentUser.id,
+        authorEmail: currentUser.email,
+        text,
+        replies: []
+    });
+    try {
+        await firebaseDB.collection("posts").doc(post.id).update({ comments });
+        input.value = "";
+    } catch (error) {
+        console.error(error);
+        alert("Could not add your comment.");
+    }
+}
+
+async function replyToComment(postIndex, commentIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "player") {
+        alert("Only players can reply.");
+        return;
+    }
+    const input = document.getElementById(`reply-input-${postIndex}-${commentIndex}`);
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    const posts = getFirebasePostsCache();
+    const post = posts[postIndex];
+    if (!post || !post.id || !Array.isArray(post.comments) || !post.comments[commentIndex]) return;
+    const comments = JSON.parse(JSON.stringify(post.comments));
+    if (!Array.isArray(comments[commentIndex].replies)) comments[commentIndex].replies = [];
+    comments[commentIndex].replies.push({
+        author: currentUser.name,
+        authorId: currentUser.id,
+        authorEmail: currentUser.email,
+        text
+    });
+    try {
+        await firebaseDB.collection("posts").doc(post.id).update({ comments });
+        input.value = "";
+    } catch (error) {
+        console.error(error);
+        alert("Could not add your reply.");
+    }
+}
+
+async function deleteCommunityPost(postIndex) {
+    const currentUser = getCurrentUser();
+    const posts = getFirebasePostsCache();
+    const post = posts[postIndex];
+    if (!currentUser || !post || String(post.authorId) !== String(currentUser.id)) return;
+    if (!confirm("Delete this community post?")) return;
+    try {
+        await firebaseDB.collection("posts").doc(post.id).delete();
+    } catch (error) {
+        console.error(error);
+        alert("Could not delete the post.");
+    }
+}
+
+async function deleteCommunityComment(postIndex, commentIndex) {
+    const currentUser = getCurrentUser();
+    const posts = getFirebasePostsCache();
+    const post = posts[postIndex];
+    if (!currentUser || !post || !post.id || !Array.isArray(post.comments)) return;
+    const comments = JSON.parse(JSON.stringify(post.comments));
+    const comment = comments[commentIndex];
+    if (!comment || String(comment.authorId) !== String(currentUser.id)) return;
+    comments.splice(commentIndex, 1);
+    try {
+        await firebaseDB.collection("posts").doc(post.id).update({ comments });
+    } catch (error) {
+        console.error(error);
+        alert("Could not delete the comment.");
+    }
+}
+
+async function deleteCommunityReply(postIndex, commentIndex, replyIndex) {
+    const currentUser = getCurrentUser();
+    const posts = getFirebasePostsCache();
+    const post = posts[postIndex];
+    if (!currentUser || !post || !post.id || !Array.isArray(post.comments)) return;
+    const comments = JSON.parse(JSON.stringify(post.comments));
+    const comment = comments[commentIndex];
+    const reply = comment && Array.isArray(comment.replies) ? comment.replies[replyIndex] : null;
+    if (!reply || String(reply.authorId) !== String(currentUser.id)) return;
+    comment.replies.splice(replyIndex, 1);
+    try {
+        await firebaseDB.collection("posts").doc(post.id).update({ comments });
+    } catch (error) {
+        console.error(error);
+        alert("Could not delete the reply.");
+    }
+}
+
+/* Firebase versions of tips */
+
+function getFirebaseTipsCache() {
+    return firebaseCacheGet(FIREBASE_TIPS_CACHE, firebaseCacheGet("footballTips", []));
+}
+
+async function createTip(event) {
+    event.preventDefault();
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.role !== "scout") {
+        alert("Only scouts/coaches can add tips.");
+        return;
+    }
+    const title = document.getElementById("tipTitle")?.value.trim() || "";
+    const content = document.getElementById("tipContent")?.value.trim() || "";
+    if (!title || !content) return;
+    try {
+        await firebaseDB.collection("tips").add({
+            title,
+            content,
+            author: currentUser.name,
+            authorId: currentUser.id,
+            authorEmail: currentUser.email,
+            likes: 0,
+            likedBy: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        if (document.getElementById("tipTitle")) document.getElementById("tipTitle").value = "";
+        if (document.getElementById("tipContent")) document.getElementById("tipContent").value = "";
+    } catch (error) {
+        console.error(error);
+        alert("Could not publish the tip. Check your Firestore rules.");
+    }
+}
+
+async function toggleTipLike(tipIndex) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        alert("Please login to like tips.");
+        return;
+    }
+    const tips = getFirebaseTipsCache();
+    const tip = tips[tipIndex];
+    if (!tip || !tip.id) return;
+    const likedBy = Array.isArray(tip.likedBy) ? [...tip.likedBy] : [];
+    const uid = String(currentUser.id);
+    const existing = likedBy.indexOf(uid);
+    if (existing >= 0) likedBy.splice(existing, 1); else likedBy.push(uid);
+    try {
+        await firebaseDB.collection("tips").doc(tip.id).update({ likedBy, likes: likedBy.length });
+    } catch (error) {
+        console.error(error);
+        alert("Could not update the like.");
+    }
+}
+
+async function deleteTip(tipIndex) {
+    const currentUser = getCurrentUser();
+    const tips = getFirebaseTipsCache();
+    const tip = tips[tipIndex];
+    if (!currentUser || !tip || String(tip.authorId) !== String(currentUser.id)) return;
+    if (!confirm("Delete this tip?")) return;
+    try {
+        await firebaseDB.collection("tips").doc(tip.id).delete();
+    } catch (error) {
+        console.error(error);
+        alert("Could not delete the tip.");
+    }
+}
+
+/* Firebase profile editing */
+
+async function saveProfile(event) {
+    event.preventDefault();
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        alert("Please login first.");
+        showPage("login");
+        return;
+    }
+
+    const name = document.getElementById("editName").value.trim();
+    const email = document.getElementById("editEmail").value.trim().toLowerCase();
+    const password = document.getElementById("editPassword").value;
+    if (!name || !email) {
+        alert("Name and email are required.");
+        return;
+    }
+
+    let position = currentUser.position || "";
+    let age = currentUser.age || "";
+    let country = currentUser.country || "";
+    if (currentUser.role === "player") {
+        position = document.getElementById("editPosition").value;
+        age = document.getElementById("editAge").value;
+        country = document.getElementById("editCountry")?.value.trim() || "";
+        if (!position || !age || !country) {
+            alert("Players must enter their position, age and country.");
+            return;
+        }
+    }
+
+    const pictureInput = document.getElementById("editProfilePicture");
+    try {
+        const authUser = firebaseAuth.currentUser;
+        if (!authUser) throw new Error("Your login session has expired. Please login again.");
+        let profilePicture = currentUser.profilePicture || defaultProfilePicture;
+        if (pictureInput.files && pictureInput.files[0]) {
+            profilePicture = await uploadProfilePictureToFirebase(pictureInput.files[0], authUser.uid);
+        }
+
+        if (email !== currentUser.email) await authUser.updateEmail(email);
+        if (password) await authUser.updatePassword(password);
+        await authUser.updateProfile({ displayName: name });
+
+        const updatedUser = {
+            ...currentUser,
+            id: authUser.uid,
+            name,
+            email,
+            position,
+            age,
+            country,
+            profilePicture,
+            playingVideo: ""
+        };
+        delete updatedUser.password;
+        await firebaseDB.collection("users").doc(authUser.uid).set(updatedUser, { merge: true });
+        saveCurrentUser(updatedUser);
+
+        const posts = getFirebasePostsCache();
+        const batch = firebaseDB.batch();
+        posts.forEach(post => {
+            if (String(post.authorId) === String(currentUser.id) && post.id) {
+                batch.update(firebaseDB.collection("posts").doc(post.id), {
+                    author: name,
+                    authorId: authUser.uid,
+                    authorEmail: email,
+                    profilePicture
+                });
+            }
+        });
+        await batch.commit();
+
+        alert("Profile updated successfully!");
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("home");
+    } catch (error) {
+        console.error(error);
+        alert(error.message || "Could not update your profile.");
+    }
+}
+
+async function deleteMyAccount() {
+    const currentUser = getCurrentUser();
+    if (!currentUser || !["player", "scout"].includes(currentUser.role)) return;
+    if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+
+    try {
+        const batch = firebaseDB.batch();
+        const posts = getFirebasePostsCache();
+        posts.forEach(post => {
+            if (String(post.authorId) === String(currentUser.id) && post.id) {
+                batch.delete(firebaseDB.collection("posts").doc(post.id));
+            }
+        });
+        const tips = getFirebaseTipsCache();
+        tips.forEach(tip => {
+            if (String(tip.authorId) === String(currentUser.id) && tip.id) {
+                batch.delete(firebaseDB.collection("tips").doc(tip.id));
+            }
+        });
+        batch.delete(firebaseDB.collection("users").doc(String(currentUser.id)));
+        await batch.commit();
+
+        const authUser = firebaseAuth.currentUser;
+        if (authUser) await authUser.delete();
+        saveCurrentUser(null);
+        alert("Your account has been deleted.");
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("signup");
+    } catch (error) {
+        console.error(error);
+        if (error.code === "auth/requires-recent-login") {
+            alert("For security, Firebase requires you to login again before deleting your account.");
+        } else {
+            alert(error.message || "Could not delete your account.");
+        }
+    }
+}
+
+/* The old localStorage reset would destroy data before migration, so it is disabled. */
+function resetPlayerProfilesOnce() {
+    return;
+}
+
+/* Initial Firebase-backed render. */
+firebaseInitializeApp();
+
+/* =========================================================
    START APPLICATION
 ========================================================= */
 
@@ -3800,14 +4573,9 @@ function deleteMyAccount() {
  * Perform the requested one-time player-profile reset
  * before displaying the application.
  */
-resetPlayerProfilesOnce();
-
 updateUserInterface();
-
 displayPlayers();
-
 displayPosts();
-
 displayTips();
 
 </script>
