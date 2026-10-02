@@ -1591,165 +1591,78 @@ function previewSignupPicture(event) {
 function signup(event) {
 
     event.preventDefault();
-    const name =
-        document.getElementById(
-            "signupName"
-        ).value.trim();
 
-
-    const email =
-        document.getElementById(
-            "signupEmail"
-        ).value.trim().toLowerCase();
-
-
-    const password =
-        document.getElementById(
-            "signupPassword"
-        ).value;
-
-
-    const role =
-        document.getElementById(
-            "signupRole"
-        ).value;
-
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+    const password = document.getElementById("signupPassword").value;
+    const role = document.getElementById("signupRole").value;
 
     let position = "";
-
     let age = "";
-
     let country = "";
 
-
     if (!name || !email || !password || !role) {
-
-        alert(
-            "Please complete all required fields."
-        );
-
+        alert("Please complete all required fields.");
         return;
-
     }
-
 
     if (role === "player") {
-
-        position =
-            document.getElementById(
-                "signupPosition"
-            ).value;
-
-
-        age =
-            document.getElementById(
-                "signupAge"
-            ).value;
-
-
-        country =
-            document.getElementById(
-                "signupCountry"
-            ).value.trim();
-
+        position = document.getElementById("signupPosition").value;
+        age = document.getElementById("signupAge").value;
+        country = document.getElementById("signupCountry").value.trim();
 
         if (!position || !age || !country) {
-
-            alert(
-                "Players must enter their position, age and country."
-            );
-
+            alert("Players must enter their position, age and country.");
             return;
-
         }
-
     }
 
-
-    const users =
-        getUsers();
-
-
-    const existingUser =
-        users.find(
-            user =>
-                user.email.toLowerCase() === email
-        );
-
-
-    if (existingUser) {
-
-        alert(
-            "An account with this email already exists."
-        );
-
-        return;
-
-    }
-
-
-    const pictureInput =
-        document.getElementById(
-            "signupPicture"
-        );
+    const pictureInput = document.getElementById("signupPicture");
 
     const finishWithPicture = function(profilePicture) {
-
         finishSignup(
-            name, email, password, role, position, age, country,
-            profilePicture, ""
+            name,
+            email,
+            password,
+            role,
+            position,
+            age,
+            country,
+            profilePicture || defaultProfilePicture,
+            ""
         );
     };
 
-
-    if (
-        role === "player" &&
-        pictureInput.files &&
-        pictureInput.files[0]
-    ) {
-
-        const file =
-            pictureInput.files[0];
-
+    if (role === "player" && pictureInput.files && pictureInput.files[0]) {
+        const file = pictureInput.files[0];
 
         if (!file.type.startsWith("image/")) {
-
-            alert(
-                "Please select a valid image."
-            );
-
+            alert("Please select a valid image.");
             return;
-
         }
 
-
-        const reader =
-            new FileReader();
-
+        const reader = new FileReader();
 
         reader.onload = function(e) {
-
             finishWithPicture(e.target.result);
-
         };
 
-
         reader.readAsDataURL(file);
-
     } else {
-
         finishWithPicture(defaultProfilePicture);
-
     }
-
 }
 
 
 /* =========================================================
-   FINISH SIGNUP
+   FINISH SIGNUP - FIREBASE AUTHENTICATION
+
+   Firebase Authentication now creates the real account.
+   We keep a local copy temporarily so the existing UI keeps
+   working while we migrate the remaining app data to Firestore.
 ========================================================= */
 
-function finishSignup(
+async function finishSignup(
     name,
     email,
     password,
@@ -1761,174 +1674,142 @@ function finishSignup(
     playingVideo = ""
 ) {
 
-    const users =
-        getUsers();
-
-
-    const newUser = {
-
-        id:
-            Date.now().toString(),
-
-        name:
-            name,
-
-        email:
+    try {
+        const credential = await firebaseAuth.createUserWithEmailAndPassword(
             email,
+            password
+        );
 
-        password:
-            password,
+        const firebaseUser = credential.user;
 
-        role:
-            role,
+        await firebaseUser.updateProfile({
+            displayName: name
+        });
 
-        position:
-            position,
+        const newUser = {
+            id: firebaseUser.uid,
+            name: name,
+            email: firebaseUser.email,
+            role: role,
+            position: position,
+            age: age,
+            country: country,
+            profilePicture: profilePicture || defaultProfilePicture,
+            playingVideo: playingVideo || ""
+        };
 
-        age:
-            age,
+        /* Temporary compatibility mirror for the existing UI. */
+        const users = getUsers().filter(
+            user => user && user.id !== firebaseUser.uid
+        );
+        users.push(newUser);
+        saveUsers(users);
+        saveCurrentUser(newUser);
 
-        country:
-            country,
+        alert("Account created successfully with Firebase!");
 
-        profilePicture:
-            profilePicture ||
-            defaultProfilePicture,
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("home");
 
-        playingVideo:
-            playingVideo ||
-            ""
+    } catch (error) {
+        console.error("Firebase signup error:", error);
 
-    };
+        let message = "Unable to create the account.";
 
+        if (error.code === "auth/email-already-in-use") {
+            message = "An account with this email already exists in Firebase.";
+        } else if (error.code === "auth/invalid-email") {
+            message = "Please enter a valid email address.";
+        } else if (error.code === "auth/weak-password") {
+            message = "The password is too weak. Please use a stronger password.";
+        }
 
-    users.push(newUser);
-
-
-    saveUsers(users);
-
-    saveCurrentUser(newUser);
-
-
-    alert(
-        "Account created successfully!"
-    );
-
-
-    updateUserInterface();
-
-    displayPlayers();
-
-    displayPosts();
-
-    displayTips();
-
-
-    showPage("home");
-
+        alert(message);
+    }
 }
 
 
 /* =========================================================
-   LOGIN
+   LOGIN - FIREBASE AUTHENTICATION
 ========================================================= */
 
-function login(event) {
+async function login(event) {
 
     event.preventDefault();
 
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword").value;
 
-    const email =
-        document.getElementById(
-            "loginEmail"
-        ).value.trim().toLowerCase();
-
-
-    const password =
-        document.getElementById(
-            "loginPassword"
-        ).value;
-
-
-    const users =
-        getUsers();
-
-
-    const user =
-        users.find(
-            item =>
-                item.email.toLowerCase() === email &&
-                item.password === password
-        );
-
-
-    if (!user) {
-
-        alert(
-            "Invalid email or password."
-        );
-
+    if (!email || !password) {
+        alert("Please enter your email and password.");
         return;
-
     }
 
+    try {
+        const credential = await firebaseAuth.signInWithEmailAndPassword(
+            email,
+            password
+        );
 
-    if (!user.profilePicture) {
+        const firebaseUser = credential.user;
+        const users = getUsers();
 
-        user.profilePicture =
-            defaultProfilePicture;
+        let user = users.find(
+            item => item && item.id === firebaseUser.uid
+        );
 
+        /*
+         * If the local mirror is missing, create a minimal profile.
+         * The full profile migration to Firestore comes next.
+         */
+        if (!user) {
+            user = {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || "iMex User",
+                email: firebaseUser.email,
+                role: "player",
+                position: "",
+                age: "",
+                country: "",
+                profilePicture: defaultProfilePicture,
+                playingVideo: ""
+            };
+
+            users.push(user);
+            saveUsers(users);
+        }
+
+        if (!user.profilePicture) {
+            user.profilePicture = defaultProfilePicture;
+        }
+
+        saveUsers(users);
+        saveCurrentUser(user);
+
+        alert("Login successful!");
+
+        updateUserInterface();
+        displayPlayers();
+        displayPosts();
+        displayTips();
+        showPage("home");
+
+    } catch (error) {
+        console.error("Firebase login error:", error);
+
+        let message = "Invalid email or password.";
+
+        if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+            message = "Invalid email or password.";
+        } else if (error.code === "auth/too-many-requests") {
+            message = "Too many unsuccessful login attempts. Please try again later.";
+        }
+
+        alert(message);
     }
-
-
-    if (user.role === "player") {
-
-        if (!user.position) {
-
-            user.position =
-                "Position not added";
-
-        }
-
-
-        if (!user.age) {
-
-            user.age = "";
-
-        }
-
-
-        if (!user.country) {
-
-            user.country =
-                "Country not added";
-
-        }
-
-    }
-
-
-    saveUsers(users);
-
-    saveCurrentUser(user);
-
-
-    alert(
-        "Login successful!"
-    );
-
-
-    updateUserInterface();
-
-    displayPlayers();
-
-    displayPosts();
-
-    displayTips();
-
-
-    showPage("home");
-
 }
 
 
@@ -1938,22 +1819,18 @@ function login(event) {
 
 function logout() {
 
-    localStorage.removeItem(
-        "currentFootballUser"
-    );
-
-
-    updateUserInterface();
-
-    displayPlayers();
-
-    displayPosts();
-
-    displayTips();
-
-
-    showPage("home");
-
+    firebaseAuth.signOut()
+        .catch(error => {
+            console.error("Firebase logout error:", error);
+        })
+        .finally(() => {
+            localStorage.removeItem("currentFootballUser");
+            updateUserInterface();
+            displayPlayers();
+            displayPosts();
+            displayTips();
+            showPage("home");
+        });
 }
 
 
