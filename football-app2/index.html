@@ -1228,6 +1228,47 @@
 </footer>
 
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
+
+<script>
+/* =========================================================
+   FIREBASE CONFIGURATION
+   iMex⚽App / imexfootballapp
+========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBvzzN71X1AFjbkKrNTHUQ1vc3hkLEiIsQ",
+    authDomain: "imexfootballapp.firebaseapp.com",
+    projectId: "imexfootballapp",
+    storageBucket: "imexfootballapp.firebasestorage.app",
+    messagingSenderId: "1017830178606",
+    appId: "1:1017830178606:web:9632a715a33ae71e9a44bf",
+    measurementId: "G-PVWN4J7TTD"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const firebaseAuth = firebase.auth();
+const firebaseDB = firebase.firestore();
+const firebaseStorage = firebase.storage();
+
+try {
+    firebase.analytics();
+} catch (error) {
+    console.warn("Firebase Analytics is unavailable on this page.", error);
+}
+
+console.log("iMex⚽App Firebase initialized successfully.");
+
+</script>
+
 <script>
 
 /* =========================================================
